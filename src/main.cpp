@@ -115,7 +115,7 @@ static void print_clicked(GtkButton*,gpointer data) {
 static GtkWidget* label(const char* text){auto* w=gtk_label_new(text);gtk_widget_set_halign(w,GTK_ALIGN_START);return w;}
 static void activate(GApplication* application,gpointer) {
     auto* s=new State();
-    s->window=adw_application_window_new(ADW_APPLICATION(application));
+    s->window=adw_application_window_new(GTK_APPLICATION(application));
     gtk_window_set_title(GTK_WINDOW(s->window),"Linux Print Studio");
     gtk_window_set_default_size(GTK_WINDOW(s->window),1080,720);
     g_object_set_data_full(G_OBJECT(s->window),"state",s,[](gpointer p){delete static_cast<State*>(p);});

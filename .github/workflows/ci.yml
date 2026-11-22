@@ -27,3 +27,46 @@ jobs:
         with:
           name: linux-print-studio-cpp-deb
           path: '*.deb'
+
+  fedora-rpm:
+    runs-on: ubuntu-24.04
+    container:
+      image: fedora:42
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Fedora dependencies
+        run: dnf install -y gcc-c++ cmake ninja-build pkgconf-pkg-config gtk4-devel libadwaita-devel poppler-glib-devel cairo-devel cups-devel rpm-build
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build build --parallel 2
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Package RPM
+        run: |
+          mkdir -p staging
+          DESTDIR="$PWD/staging" cmake --install build --prefix /usr
+          mkdir -p rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+          cat > rpmbuild/SPECS/linux-print-studio-cpp.spec <<'SPEC'
+          Name: linux-print-studio-cpp
+          Version: 1.0.0
+          Release: 1%{?dist}
+          Summary: Linux Print Studio GTK edition
+          License: MIT
+          BuildArch: x86_64
+          AutoReqProv: yes
+          %description
+          Native GTK4 PDF printing studio for Linux.
+          %install
+          mkdir -p %{buildroot}/usr/bin
+          install -m 0755 %{_topdir}/../../staging/usr/bin/linux-print-studio %{buildroot}/usr/bin/linux-print-studio
+          %files
+          /usr/bin/linux-print-studio
+          SPEC
+          sed -i "s|%{_topdir}/../../staging|$PWD/staging|" rpmbuild/SPECS/linux-print-studio-cpp.spec
+          rpmbuild -bb --define "_topdir $PWD/rpmbuild" rpmbuild/SPECS/linux-print-studio-cpp.spec
+          cp rpmbuild/RPMS/x86_64/*.rpm .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-print-studio-cpp-fedora-rpm
+          path: '*.rpm'

@@ -10,9 +10,6 @@
 
 namespace lps {
 std::vector<Side> n_up(size_t pages, size_t per_sheet) {
-    if (!pages || std::find(std::begin(std::array{1u,2u,4u,6u,9u,16u}), std::end(std::array{1u,2u,4u,6u,9u,16u}), per_sheet) != std::end(std::array{1u,2u,4u,6u,9u,16u})) {
-        // Validation below also handles nonstandard values.
-    }
     if (!pages || (per_sheet!=1 && per_sheet!=2 && per_sheet!=4 && per_sheet!=6 && per_sheet!=9 && per_sheet!=16)) throw std::invalid_argument("Invalid N-up layout");
     std::vector<Side> out;
     for(size_t i=1;i<=pages;) {

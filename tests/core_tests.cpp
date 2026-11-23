@@ -4,6 +4,17 @@
 #define assert(condition) do { if(!(condition)) { std::cerr << "Test failed: " #condition << " at line " << __LINE__ << '\n'; return EXIT_FAILURE; } } while(false)
 #include <stdexcept>
 int main() {
+    const auto selected=lps::parse_page_range("1-3, 7, 3, 9-10",10);
+    assert((selected==std::vector<size_t>{1,2,3,7,9,10}));
+    const auto mapped=lps::remap_pages(lps::n_up(selected.size(),2),selected);
+    assert(mapped.size()==3 && mapped[0][0]==1 && mapped[1][1]==7 && mapped[2][1]==10);
+    const auto booklet_mapped=lps::remap_pages(lps::booklet(6),selected);
+    assert(booklet_mapped[0][1]==1 && !booklet_mapped[0][0]);
+    for(const char* invalid:{"","0","11","2-1","1-","1,,2","1,","x","1-3-4"}) {
+        bool rejected=false;
+        try {lps::parse_page_range(invalid,10);}catch(const std::invalid_argument&){rejected=true;}
+        assert(rejected);
+    }
     auto b=lps::booklet(8);
     assert(b.size()==4 && b[0][0]==8 && b[0][1]==1);
     assert(b[1][0]==2 && b[1][1]==7);

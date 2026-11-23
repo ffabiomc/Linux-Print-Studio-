@@ -133,11 +133,23 @@ void export_pdf(const std::string& input,const std::string& output,const std::ve
     if(status==CAIRO_STATUS_SUCCESS) status=cairo_surface_status(surface.get());
     if(status!=CAIRO_STATUS_SUCCESS) throw std::runtime_error("PDF export failed");
 }
-int print_pdf(const std::string& path,const std::string& printer,int copies,bool duplex) {
+std::vector<Side> select_sides(const std::vector<Side>& sides,const std::vector<size_t>& indices) {
+    if(sides.empty() || indices.empty()) throw std::invalid_argument("Empty manual duplex selection");
+    std::vector<Side> result;
+    result.reserve(indices.size());
+    for(size_t index:indices) {
+        if(index==0 || index>sides.size()) throw std::out_of_range("Invalid manual duplex sheet side");
+        result.push_back(sides[index-1]);
+    }
+    return result;
+}
+int print_pdf(const std::string& path,const std::string& printer,int copies,PrintSides sides) {
     if(printer.empty() || copies<1 || copies>999) throw std::invalid_argument("Invalid print options");
     Options options;
     options.count=cupsAddOption("copies",std::to_string(copies).c_str(),options.count,&options.data);
-    if(duplex) options.count=cupsAddOption("sides","two-sided-long-edge",options.count,&options.data);
+    const char* binding=sides==PrintSides::LongEdge?"two-sided-long-edge":
+                        sides==PrintSides::ShortEdge?"two-sided-short-edge":"one-sided";
+    options.count=cupsAddOption("sides",binding,options.count,&options.data);
     int id=cupsPrintFile(printer.c_str(),path.c_str(),"Linux Print Studio",options.count,options.data);
     if(id<=0) throw std::runtime_error(cupsLastErrorString());
     return id;

@@ -42,7 +42,7 @@ struct State {
     bool reload_confirmed=false;
     std::string manual_printer;
     std::string manual_document;
-    GtkWidget *reload_check=nullptr,*wizard_step=nullptr,*feed_direction=nullptr,*calibration_save=nullptr;
+    GtkWidget *reload_check=nullptr,*wizard_step=nullptr,*feed_direction=nullptr,*feed_label=nullptr,*calibration_save=nullptr;
     bool page_selection_valid=true;
     lps::RenderOptions render_options;
     std::vector<size_t> selected_page_numbers;
@@ -137,6 +137,16 @@ static void refresh_manual_wizard(State* s) {
         !s->reload_confirmed?tr("Step 2 of 3: Reload paper and confirm"):
         tr("Step 3 of 3: Print the back sides");
     gtk_label_set_text(GTK_LABEL(s->wizard_step),step);
+    if(s->duplex_hint && s->manual_fronts_sent && has_backs) {
+        const unsigned direction=s->feed_direction?
+            gtk_drop_down_get_selected(GTK_DROP_DOWN(s->feed_direction)):0;
+        const char* guidance=direction==1?
+            tr("After the front pass finishes, reload the stack with its top edge entering first, as verified by calibration."):
+            direction==2?
+            tr("After the front pass finishes, reload the stack with its bottom edge entering first, as verified by calibration."):
+            tr("Paper orientation is not calibrated. Use the front/back calibration sheets before printing a large job.");
+        gtk_label_set_text(GTK_LABEL(s->duplex_hint),guidance);
+    }
 }
 static void reload_toggled(GtkCheckButton* check,gpointer data) {
     auto* s=static_cast<State*>(data);
@@ -665,6 +675,7 @@ static void duplex_changed(GObject*,GParamSpec*,gpointer data) {
     if(s->reload_check) gtk_widget_set_visible(s->reload_check,manual);
     if(s->wizard_step) gtk_widget_set_visible(s->wizard_step,manual);
     if(s->feed_direction) gtk_widget_set_visible(s->feed_direction,manual);
+    if(s->feed_label) gtk_widget_set_visible(s->feed_label,manual);
     if(s->calibration_save) gtk_widget_set_visible(s->calibration_save,manual);
     gtk_drop_down_set_selected(GTK_DROP_DOWN(s->preview_pass),0);
     s->page=0;
@@ -826,7 +837,9 @@ static void activate(GApplication* application,gpointer) {
     gtk_widget_set_sensitive(s->calibration_back,FALSE);
     g_signal_connect(s->calibration_back,"clicked",G_CALLBACK(calibration_clicked),s);
     gtk_box_append(GTK_BOX(side),s->calibration_back);
-    gtk_box_append(GTK_BOX(side),label(tr("Paper reload orientation (calibrate first)")));
+    s->feed_label=label(tr("Paper reload orientation (calibrate first)"));
+    gtk_widget_set_visible(s->feed_label,FALSE);
+    gtk_box_append(GTK_BOX(side),s->feed_label);
     const char* feeds[]={tr("Not calibrated"),tr("Top edge first"),tr("Bottom edge first"),nullptr};
     s->feed_direction=gtk_drop_down_new_from_strings(feeds);
     gtk_widget_set_visible(s->feed_direction,FALSE);

@@ -3,6 +3,8 @@
 #include <gtk/gtk.h>
 #include <poppler.h>
 #include <cairo-pdf.h>
+#include <libintl.h>
+#include <locale.h>
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
@@ -13,6 +15,8 @@
 #include <vector>
 
 namespace {
+constexpr const char* translation_domain="linux-print-studio";
+const char* tr(const char* message) { return dgettext(translation_domain,message); }
 template<typename T> struct ObjectUnref {
     void operator()(T* ptr) const noexcept { if(ptr) g_object_unref(ptr); }
 };
@@ -369,19 +373,19 @@ static void reverse_backs_changed(GtkCheckButton*,gpointer data) {
     s->page=0;
     update_page(s);
 }
-static GtkWidget* label(const char* text){auto* w=gtk_label_new(text);gtk_widget_set_halign(w,GTK_ALIGN_START);return w;}
+static GtkWidget* label(const char* text){auto* w=gtk_label_new(tr(text));gtk_widget_set_halign(w,GTK_ALIGN_START);return w;}
 static void activate(GApplication* application,gpointer) {
     auto state=std::make_unique<State>();
     auto* s=state.get();
     s->window=adw_application_window_new(GTK_APPLICATION(application));
-    gtk_window_set_title(GTK_WINDOW(s->window),"Linux Print Studio");
+    gtk_window_set_title(GTK_WINDOW(s->window),tr("Linux Print Studio"));
     gtk_window_set_default_size(GTK_WINDOW(s->window),1080,720);
     g_object_set_data_full(G_OBJECT(s->window),"state",state.release(),[](gpointer p){std::unique_ptr<State> owned(static_cast<State*>(p));});
     auto* outer=gtk_box_new(GTK_ORIENTATION_VERTICAL,0);
     adw_application_window_set_content(ADW_APPLICATION_WINDOW(s->window),outer);
     auto* header=adw_header_bar_new();
     gtk_box_append(GTK_BOX(outer),header);
-    auto* open=gtk_button_new_with_label("Open PDF");
+    auto* open=gtk_button_new_with_label(tr("Open PDF"));
     g_signal_connect(open,"clicked",G_CALLBACK(open_clicked),s);
     adw_header_bar_pack_start(ADW_HEADER_BAR(header),open);
     auto* body=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,0);
@@ -393,15 +397,15 @@ static void activate(GApplication* application,gpointer) {
     gtk_widget_set_margin_top(side,18);
     gtk_box_append(GTK_BOX(body),side);
     gtk_box_append(GTK_BOX(side),label("Page layout"));
-    const char* layouts[]={"Normal","Booklet","2 pages / sheet","4 pages / sheet","6 pages / sheet","9 pages / sheet","16 pages / sheet",nullptr};
+    const char* layouts[]={tr("Normal"),tr("Booklet"),tr("2 pages / sheet"),tr("4 pages / sheet"),tr("6 pages / sheet"),tr("9 pages / sheet"),tr("16 pages / sheet"),nullptr};
     s->layout=gtk_drop_down_new_from_strings(layouts);
     gtk_box_append(GTK_BOX(side),s->layout);
     gtk_box_append(GTK_BOX(side),label("Orientation"));
-    const char* orientations[]={"Automatic","Portrait","Landscape",nullptr};
+    const char* orientations[]={tr("Automatic"),tr("Portrait"),tr("Landscape"),nullptr};
     s->orientation=gtk_drop_down_new_from_strings(orientations);
     gtk_box_append(GTK_BOX(side),s->orientation);
     gtk_box_append(GTK_BOX(side),label("Paper size"));
-    const char* papers[]={"A4","Letter","Legal",nullptr};
+    const char* papers[]={tr("A4"),tr("Letter"),tr("Legal"),nullptr};
     s->paper=gtk_drop_down_new_from_strings(papers);
     gtk_box_append(GTK_BOX(side),s->paper);
     g_signal_connect(s->layout,"notify::selected",G_CALLBACK(layout_changed),s);
@@ -424,7 +428,7 @@ static void activate(GApplication* application,gpointer) {
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(s->copies),1);
     gtk_box_append(GTK_BOX(side),s->copies);
     gtk_box_append(GTK_BOX(side),label("Duplex mode"));
-    const char* duplex_modes[]={"One-sided","Automatic (long edge)","Automatic (short edge)","Manual (two passes)",nullptr};
+    const char* duplex_modes[]={tr("One-sided"),tr("Automatic (long edge)"),tr("Automatic (short edge)"),tr("Manual (two passes)"),nullptr};
     s->duplex=gtk_drop_down_new_from_strings(duplex_modes);
     gtk_box_append(GTK_BOX(side),s->duplex);
     s->reverse_backs=gtk_check_button_new_with_label("Reverse back-side order");
@@ -441,7 +445,7 @@ static void activate(GApplication* application,gpointer) {
     gtk_box_append(GTK_BOX(side),s->manual_backs);
     g_signal_connect(s->duplex,"notify::selected",G_CALLBACK(duplex_changed),s);
     g_signal_connect(s->reverse_backs,"toggled",G_CALLBACK(reverse_backs_changed),s);
-    const char* passes[]={"All sheets","Front pass","Back pass",nullptr};
+    const char* passes[]={tr("All sheets"),tr("Front pass"),tr("Back pass"),nullptr};
     s->preview_pass=gtk_drop_down_new_from_strings(passes);
     gtk_widget_set_visible(s->preview_pass,FALSE);
     g_signal_connect(s->preview_pass,"notify::selected",G_CALLBACK(preview_pass_changed),s);
@@ -493,6 +497,9 @@ static void activate(GApplication* application,gpointer) {
     gtk_window_present(GTK_WINDOW(s->window));
 }
 int main(int argc,char** argv) {
+    setlocale(LC_ALL,"");
+    bindtextdomain("linux-print-studio",LPS_LOCALE_DIR);
+    bind_textdomain_codeset("linux-print-studio","UTF-8");
     ObjectPtr<AdwApplication> app(adw_application_new("io.github.ffabiomc.LinuxPrintStudio",G_APPLICATION_DEFAULT_FLAGS));
     g_signal_connect(app.get(),"activate",G_CALLBACK(activate),nullptr);
     int result=g_application_run(G_APPLICATION(app.get()),argc,argv);

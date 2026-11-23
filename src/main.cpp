@@ -27,12 +27,14 @@ struct GFree {
 using OwnedString=std::unique_ptr<gchar,GFree>;
 }
 struct State {
-    GtkWidget *window=nullptr,*preview=nullptr,*status=nullptr,*page_label=nullptr;
+    GtkWidget *window=nullptr,*preview=nullptr,*status=nullptr,*page_label=nullptr,*prev_button=nullptr,*next_button=nullptr,*print_button=nullptr,*export_button=nullptr,*document_info=nullptr,*zoom=nullptr;
     GtkWidget *layout=nullptr,*orientation=nullptr,*paper=nullptr,*copies=nullptr,*duplex=nullptr,*printer=nullptr,*reverse_backs=nullptr,*manual_fronts=nullptr,*manual_backs=nullptr,*preview_pass=nullptr,*duplex_hint=nullptr,*calibration_front=nullptr,*calibration_back=nullptr;
     ObjectPtr<PopplerDocument> doc;
     std::string path;
     std::vector<std::string> printer_names;
     int page=0;
+    double zoom_factor=1.0;
+    bool fit_width=false;
     bool manual_fronts_sent=false;
 
 };
@@ -68,12 +70,30 @@ static void preview_draw(GtkDrawingArea*,cairo_t* cr,int width,int height,gpoint
     auto* s=static_cast<State*>(data);
     cairo_set_source_rgb(cr,.88,.89,.91);
     cairo_paint(cr);
-    if(!s->doc || width<=40 || height<=40) return;
+    if(!s->doc) {
+        cairo_set_source_rgb(cr,.42,.46,.51);
+        cairo_set_line_width(cr,3);
+        const double cx=width/2.0,cy=height/2.0-28;
+        cairo_rectangle(cr,cx-25,cy-35,50,70);cairo_stroke(cr);
+        cairo_move_to(cr,cx-13,cy-12);cairo_line_to(cr,cx+13,cy-12);
+        cairo_move_to(cr,cx-13,cy);cairo_line_to(cr,cx+13,cy);
+        cairo_move_to(cr,cx-13,cy+12);cairo_line_to(cr,cx+7,cy+12);cairo_stroke(cr);
+        cairo_select_font_face(cr,"Sans",CAIRO_FONT_SLANT_NORMAL,CAIRO_FONT_WEIGHT_NORMAL);
+        cairo_set_font_size(cr,15);
+        const char* hint=tr("Open a PDF to preview and configure printing");
+        cairo_text_extents_t ext{};
+        cairo_text_extents(cr,hint,&ext);
+        cairo_move_to(cr,cx-ext.width/2-ext.x_bearing,cy+67);
+        cairo_show_text(cr,hint);
+        return;
+    }
+    if(width<=40 || height<=40) return;
     const auto sides=visible_sides(s);
     if(sides.empty() || s->page<0 || static_cast<size_t>(s->page)>=sides.size()) return;
     auto [pw,ph]=output_size(s);
     if(pw<=0 || ph<=0) return;
-    const double zoom=std::max(.01,std::min((width-40.0)/pw,(height-40.0)/ph));
+    const double fitted=std::max(.01,std::min((width-40.0)/pw,(height-40.0)/ph));
+    const double zoom=std::max(.01,(s->fit_width?(width-40.0)/pw:fitted)*s->zoom_factor);
     const double ox=(width-pw*zoom)/2.0, oy=(height-ph*zoom)/2.0;
     cairo_save(cr);
     cairo_translate(cr,ox,oy);
@@ -113,7 +133,15 @@ static void preview_draw(GtkDrawingArea*,cairo_t* cr,int width,int height,gpoint
     cairo_restore(cr);
 }
 static void update_page(State* s) {
-    if(!s->doc) return;
+    if(!s->doc) {
+        if(s->prev_button) gtk_widget_set_sensitive(s->prev_button,FALSE);
+        if(s->next_button) gtk_widget_set_sensitive(s->next_button,FALSE);
+        if(s->print_button) gtk_widget_set_sensitive(s->print_button,FALSE);
+        if(s->export_button) gtk_widget_set_sensitive(s->export_button,FALSE);
+        if(s->document_info) gtk_label_set_text(GTK_LABEL(s->document_info),tr("No document"));
+        if(s->preview) gtk_widget_queue_draw(s->preview);
+        return;
+    }
     const auto sides=visible_sides(s);
     const int count=static_cast<int>(sides.size());
     s->page=std::clamp(s->page,0,std::max(0,count-1));
@@ -125,6 +153,19 @@ static void update_page(State* s) {
     const std::string caption=count==0?tr("No sides in this pass"):
         prefix+" "+std::to_string(s->page+1)+" / "+std::to_string(count);
     gtk_label_set_text(GTK_LABEL(s->page_label),caption.c_str());
+    if(s->prev_button) gtk_widget_set_sensitive(s->prev_button,s->page>0);
+    if(s->next_button) gtk_widget_set_sensitive(s->next_button,s->page+1<count);
+    if(s->export_button) gtk_widget_set_sensitive(s->export_button,TRUE);
+    if(s->print_button) gtk_widget_set_sensitive(s->print_button,!s->printer_names.empty());
+    if(s->document_info) {
+        const int pages=poppler_document_get_n_pages(s->doc.get());
+        const auto [w,h]=output_size(s);
+        const std::string info=std::to_string(pages)+" "+tr("pages")+" · "+
+            std::to_string(count)+" "+tr("sheets")+" · "+
+            std::to_string(static_cast<int>(std::round(w*25.4/72)))+" × "+
+            std::to_string(static_cast<int>(std::round(h*25.4/72)))+" mm";
+        gtk_label_set_text(GTK_LABEL(s->document_info),info.c_str());
+    }
     if(manual) refresh_duplex_hint(s);
     gtk_widget_queue_draw(s->preview);
 }
@@ -173,6 +214,26 @@ static void open_clicked(GtkButton*,gpointer data) {
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(chooser),filter);
     g_signal_connect(chooser,"response",G_CALLBACK(chooser_response),nullptr);
     gtk_native_dialog_show(GTK_NATIVE_DIALOG(chooser));
+}
+static gboolean dropped_file(GtkDropTarget*,const GValue* value,double,double,gpointer data) {
+    auto* s=static_cast<State*>(data);
+    GFile* file=G_FILE(g_value_get_object(value));
+    if(!file) return FALSE;
+    OwnedString path(g_file_get_path(file));
+    if(!path) {status(s,tr("Only local PDF files are supported"));return FALSE;}
+    const auto name=std::string(path.get());
+    if(name.size()<4 || g_ascii_strcasecmp(name.c_str()+name.size()-4,".pdf")!=0) {
+        status(s,tr("Drop a PDF file"));return FALSE;
+    }
+    load_pdf(s,path.get());
+    return TRUE;
+}
+static void zoom_changed(GtkDropDown* dropdown,GParamSpec*,gpointer data) {
+    auto* s=static_cast<State*>(data);
+    const unsigned index=gtk_drop_down_get_selected(dropdown);
+    s->fit_width=index==1;
+    s->zoom_factor=index==2?.5:index==3?.75:index==4?1.0:index==5?1.25:index==6?1.5:index==7?2.0:1.0;
+    gtk_widget_queue_draw(s->preview);
 }
 static void page_back(GtkButton*,gpointer data){auto* s=static_cast<State*>(data);s->page--;update_page(s);}
 static void page_next(GtkButton*,gpointer data){auto* s=static_cast<State*>(data);s->page++;update_page(s);}
@@ -465,10 +526,12 @@ static void activate(GApplication* application,gpointer) {
     g_signal_connect(s->calibration_back,"clicked",G_CALLBACK(calibration_clicked),s);
     gtk_box_append(GTK_BOX(side),s->calibration_back);
     auto* export_button=gtk_button_new_with_label(tr("Export PDF"));
+    s->export_button=export_button;
     gtk_widget_add_css_class(export_button,"suggested-action");
     g_signal_connect(export_button,"clicked",G_CALLBACK(export_clicked),s);
     gtk_box_append(GTK_BOX(side),export_button);
     auto* print_button=gtk_button_new_with_label(tr("Print"));
+    s->print_button=print_button;
     g_signal_connect(print_button,"clicked",G_CALLBACK(print_clicked),s);
     gtk_box_append(GTK_BOX(side),print_button);
     auto* main=gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
@@ -478,22 +541,38 @@ static void activate(GApplication* application,gpointer) {
     gtk_widget_set_hexpand(s->preview,TRUE);gtk_widget_set_vexpand(s->preview,TRUE);
     gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(s->preview),preview_draw,s,nullptr);
     gtk_box_append(GTK_BOX(main),s->preview);
+    auto* drop=gtk_drop_target_new(G_TYPE_FILE,GDK_ACTION_COPY);
+    g_signal_connect(drop,"drop",G_CALLBACK(dropped_file),s);
+    gtk_widget_add_controller(s->preview,GTK_EVENT_CONTROLLER(drop));
+    auto* zoom_row=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,8);
+    gtk_widget_set_halign(zoom_row,GTK_ALIGN_CENTER);
+    gtk_box_append(GTK_BOX(main),zoom_row);
+    gtk_box_append(GTK_BOX(zoom_row),label(tr("Zoom")));
+    const char* zoom_options[]={tr("Fit page"),tr("Fit width"),"50%","75%","100%","125%","150%","200%",nullptr};
+    s->zoom=gtk_drop_down_new_from_strings(zoom_options);
+    gtk_box_append(GTK_BOX(zoom_row),s->zoom);
+    g_signal_connect(s->zoom,"notify::selected",G_CALLBACK(zoom_changed),s);
+    s->document_info=label(tr("No document"));
+    gtk_box_append(GTK_BOX(zoom_row),s->document_info);
     auto* nav=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,8);
     gtk_widget_set_halign(nav,GTK_ALIGN_CENTER);
     gtk_widget_set_margin_bottom(nav,10);
     gtk_box_append(GTK_BOX(main),nav);
     auto* prev=gtk_button_new_with_label(tr("Previous"));
+    s->prev_button=prev;
     g_signal_connect(prev,"clicked",G_CALLBACK(page_back),s);
     gtk_box_append(GTK_BOX(nav),prev);
     s->page_label=label(tr("No document"));
     gtk_box_append(GTK_BOX(nav),s->page_label);
     auto* next=gtk_button_new_with_label(tr("Next"));
+    s->next_button=next;
     g_signal_connect(next,"clicked",G_CALLBACK(page_next),s);
     gtk_box_append(GTK_BOX(nav),next);
     s->status=label(tr("Open a PDF to begin"));
     gtk_widget_set_margin_start(s->status,16);
     gtk_widget_set_margin_bottom(s->status,8);
     gtk_box_append(GTK_BOX(outer),s->status);
+    update_page(s);
     gtk_window_present(GTK_WINDOW(s->window));
 }
 int main(int argc,char** argv) {

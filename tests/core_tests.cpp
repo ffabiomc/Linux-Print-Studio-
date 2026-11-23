@@ -13,7 +13,19 @@ int main() {
     assert(n.size()==2 && n[1][0]==5 && !n[1][1]);
     auto d=lps::manual_duplex(8,true);
     assert(d.fronts[0]==1 && d.backs[0]==8 && d.backs[3]==2);
-    bool failed=false;try {lps::n_up(2,3);}catch(const std::invalid_argument&){failed=true;}
+    const auto manual=lps::manual_duplex(5,false);
+    assert(manual.fronts.size()==3 && manual.backs.size()==2);
+    assert(manual.fronts[0]==1 && manual.fronts[2]==5);
+    const auto all=lps::n_up(9,2);
+    const auto fronts=lps::select_sides(all,manual.fronts);
+    const auto backs=lps::select_sides(all,manual.backs);
+    assert(fronts.size()==3 && backs.size()==2);
+    assert(fronts[0][0]==1 && fronts[1][0]==5 && fronts[2][0]==9);
+    assert(backs[0][0]==3 && backs[1][0]==7);
+    bool failed=false;
+    try {lps::select_sides(all,{0});}catch(const std::out_of_range&){failed=true;}
+    assert(failed);
+    failed=false;try {lps::n_up(2,3);}catch(const std::invalid_argument&){failed=true;}
     assert(failed);
     failed=false;
     try { lps::export_pdf("missing.pdf","out.pdf",lps::n_up(1,1),-1,842); }

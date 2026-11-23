@@ -23,7 +23,7 @@ using OwnedString=std::unique_ptr<gchar,GFree>;
 }
 struct State {
     GtkWidget *window=nullptr,*preview=nullptr,*status=nullptr,*page_label=nullptr;
-    GtkWidget *layout=nullptr,*orientation=nullptr,*paper=nullptr,*copies=nullptr,*duplex=nullptr,*printer=nullptr,*reverse_backs=nullptr,*manual_fronts=nullptr,*manual_backs=nullptr;
+    GtkWidget *layout=nullptr,*orientation=nullptr,*paper=nullptr,*copies=nullptr,*duplex=nullptr,*printer=nullptr,*reverse_backs=nullptr,*manual_fronts=nullptr,*manual_backs=nullptr,*preview_pass=nullptr,*duplex_hint=nullptr;
     ObjectPtr<PopplerDocument> doc;
     std::string path;
     std::vector<std::string> printer_names;
@@ -34,12 +34,37 @@ struct State {
 static void status(State* s,const std::string& message) { gtk_label_set_text(GTK_LABEL(s->status),message.c_str()); }
 static std::vector<lps::Side> layout_sides(State* s);
 static std::pair<double,double> output_size(State* s);
+static std::vector<lps::Side> visible_sides(State* s) {
+    const auto all=layout_sides(s);
+    if(!s->preview_pass || !s->duplex ||
+       gtk_drop_down_get_selected(GTK_DROP_DOWN(s->duplex))!=3) return all;
+    const unsigned pass=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->preview_pass));
+    if(pass==0 || all.empty()) return all;
+    const auto plan=lps::manual_duplex(all.size(),
+        gtk_check_button_get_active(GTK_CHECK_BUTTON(s->reverse_backs)));
+    const auto& indices=pass==1?plan.fronts:plan.backs;
+    if(indices.empty()) return {};
+    return lps::select_sides(all,indices);
+}
+static void refresh_duplex_hint(State* s) {
+    if(!s->duplex_hint || !s->doc) return;
+    const auto all=layout_sides(s);
+    const auto plan=lps::manual_duplex(all.size(),
+        gtk_check_button_get_active(GTK_CHECK_BUTTON(s->reverse_backs)));
+    const std::string message="Manual duplex: "+std::to_string(plan.fronts.size())+
+        " front side(s), "+std::to_string(plan.backs.size())+
+        " back side(s). Print fronts first; wait for the printer to finish. "
+        "Reload paper according to your printer's feed direction, then print backs. "
+        "Test with two sheets before a large job.";
+    gtk_label_set_text(GTK_LABEL(s->duplex_hint),message.c_str());
+}
+
 static void preview_draw(GtkDrawingArea*,cairo_t* cr,int width,int height,gpointer data) {
     auto* s=static_cast<State*>(data);
     cairo_set_source_rgb(cr,.88,.89,.91);
     cairo_paint(cr);
     if(!s->doc || width<=40 || height<=40) return;
-    const auto sides=layout_sides(s);
+    const auto sides=visible_sides(s);
     if(sides.empty() || s->page<0 || static_cast<size_t>(s->page)>=sides.size()) return;
     auto [pw,ph]=output_size(s);
     if(pw<=0 || ph<=0) return;
@@ -84,11 +109,18 @@ static void preview_draw(GtkDrawingArea*,cairo_t* cr,int width,int height,gpoint
 }
 static void update_page(State* s) {
     if(!s->doc) return;
-    const auto sides=layout_sides(s);
+    const auto sides=visible_sides(s);
     const int count=static_cast<int>(sides.size());
     s->page=std::clamp(s->page,0,std::max(0,count-1));
-    gtk_label_set_text(GTK_LABEL(s->page_label),
-        ("Sheet "+std::to_string(s->page+1)+" / "+std::to_string(count)).c_str());
+    const unsigned pass=s->preview_pass?
+        gtk_drop_down_get_selected(GTK_DROP_DOWN(s->preview_pass)):0;
+    const bool manual=s->duplex &&
+        gtk_drop_down_get_selected(GTK_DROP_DOWN(s->duplex))==3;
+    const std::string prefix=manual && pass==1?"Front":manual && pass==2?"Back":"Sheet";
+    const std::string caption=count==0?"No sides in this pass":
+        prefix+" "+std::to_string(s->page+1)+" / "+std::to_string(count);
+    gtk_label_set_text(GTK_LABEL(s->page_label),caption.c_str());
+    if(manual) refresh_duplex_hint(s);
     gtk_widget_queue_draw(s->preview);
 }
 static void layout_changed(GObject*,GParamSpec*,gpointer data) {
@@ -249,6 +281,23 @@ static void duplex_changed(GObject*,GParamSpec*,gpointer data) {
     gtk_widget_set_visible(s->manual_backs,manual);
     s->manual_fronts_sent=false;
     gtk_widget_set_sensitive(s->manual_backs,FALSE);
+    gtk_widget_set_visible(s->preview_pass,manual);
+    gtk_widget_set_visible(s->duplex_hint,manual);
+    gtk_drop_down_set_selected(GTK_DROP_DOWN(s->preview_pass),0);
+    s->page=0;
+    update_page(s);
+}
+static void preview_pass_changed(GObject*,GParamSpec*,gpointer data) {
+    auto* s=static_cast<State*>(data);
+    s->page=0;
+    update_page(s);
+}
+static void reverse_backs_changed(GtkCheckButton*,gpointer data) {
+    auto* s=static_cast<State*>(data);
+    s->manual_fronts_sent=false;
+    gtk_widget_set_sensitive(s->manual_backs,FALSE);
+    s->page=0;
+    update_page(s);
 }
 static GtkWidget* label(const char* text){auto* w=gtk_label_new(text);gtk_widget_set_halign(w,GTK_ALIGN_START);return w;}
 static void activate(GApplication* application,gpointer) {
@@ -321,11 +370,17 @@ static void activate(GApplication* application,gpointer) {
     g_signal_connect(s->manual_backs,"clicked",G_CALLBACK(manual_backs_clicked),s);
     gtk_box_append(GTK_BOX(side),s->manual_backs);
     g_signal_connect(s->duplex,"notify::selected",G_CALLBACK(duplex_changed),s);
-    g_signal_connect(s->reverse_backs,"toggled",G_CALLBACK(+[](GtkCheckButton*,gpointer data){
-        auto* state=static_cast<State*>(data);
-        state->manual_fronts_sent=false;
-        gtk_widget_set_sensitive(state->manual_backs,FALSE);
-    }),s);
+    g_signal_connect(s->reverse_backs,"toggled",G_CALLBACK(reverse_backs_changed),s);
+    const char* passes[]={"All sheets","Front pass","Back pass",nullptr};
+    s->preview_pass=gtk_drop_down_new_from_strings(passes);
+    gtk_widget_set_visible(s->preview_pass,FALSE);
+    g_signal_connect(s->preview_pass,"notify::selected",G_CALLBACK(preview_pass_changed),s);
+    gtk_box_append(GTK_BOX(side),s->preview_pass);
+    s->duplex_hint=gtk_label_new("");
+    gtk_label_set_wrap(GTK_LABEL(s->duplex_hint),TRUE);
+    gtk_label_set_xalign(GTK_LABEL(s->duplex_hint),0.0f);
+    gtk_widget_set_visible(s->duplex_hint,FALSE);
+    gtk_box_append(GTK_BOX(side),s->duplex_hint);
     auto* export_button=gtk_button_new_with_label("Export PDF");
     gtk_widget_add_css_class(export_button,"suggested-action");
     g_signal_connect(export_button,"clicked",G_CALLBACK(export_clicked),s);

@@ -114,7 +114,8 @@ void export_pdf(const std::string& input,const std::string& output,const std::ve
             if(!std::isfinite(w) || !std::isfinite(h) || w<=0 || h<=0) continue;
             const double scale=std::min(cellw/w,cellh/h);
             const double cellx=static_cast<double>(j%cols)*cellw;
-            const double celly=static_cast<double>(j/cols)*cellh;
+            const size_t row=j/cols;
+            const double celly=static_cast<double>(row)*cellh;
             const double x=cellx+(cellw-w*scale)/2.0;
             const double y=celly+(cellh-h*scale)/2.0;
             cairo_save(cr.get());

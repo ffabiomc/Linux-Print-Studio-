@@ -216,3 +216,39 @@ msgstr "Intervalo de páginas inválido"
 
 msgid "Invalid page range; use e.g. 1-5, 8, 12-15"
 msgstr "Intervalo inválido; use, por exemplo, 1-5, 8, 12-15"
+
+msgid "Advanced settings"
+msgstr "Configurações avançadas"
+
+msgid "Scale (%)"
+msgstr "Escala (%)"
+
+msgid "Margins (mm)"
+msgstr "Margens (mm)"
+
+msgid "Center content"
+msgstr "Centralizar conteúdo"
+
+msgid "Color mode"
+msgstr "Modo de cor"
+
+msgid "Color"
+msgstr "Colorido"
+
+msgid "Grayscale"
+msgstr "Tons de cinza"
+
+msgid "Print quality"
+msgstr "Qualidade de impressão"
+
+msgid "Printer default"
+msgstr "Padrão da impressora"
+
+msgid "Draft"
+msgstr "Rascunho"
+
+msgid "Normal quality"
+msgstr "Normal"
+
+msgid "High quality"
+msgstr "Alta qualidade"

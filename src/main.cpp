@@ -12,7 +12,7 @@
 
 struct State {
     GtkWidget *window=nullptr,*preview=nullptr,*status=nullptr,*page_label=nullptr;
-    GtkWidget *layout=nullptr,*copies=nullptr,*duplex=nullptr,*printer=nullptr;
+    GtkWidget *layout=nullptr,*orientation=nullptr,*paper=nullptr,*copies=nullptr,*duplex=nullptr,*printer=nullptr;
     PopplerDocument* doc=nullptr;
     std::string path;
     std::vector<std::string> printer_names;
@@ -84,8 +84,22 @@ static std::vector<lps::Side> layout_sides(State* s) {
     size_t pages=static_cast<size_t>(poppler_document_get_n_pages(s->doc));
     unsigned selected=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->layout));
     if(selected==1)return lps::booklet(pages);
-    if(selected>=2)return lps::n_up(pages,selected==2?2:selected==3?4:9);
+    if(selected>=2)return lps::n_up(pages,selected==2?2:selected==3?4:selected==4?6:selected==5?9:16);
     return lps::n_up(pages,1);
+}
+static std::pair<double,double> paper_size(State* s) {
+    switch(gtk_drop_down_get_selected(GTK_DROP_DOWN(s->paper))) {
+        case 1: return {612.0,792.0};
+        case 2: return {612.0,1008.0};
+        default: return {595.2756,841.8898};
+    }
+}
+static std::pair<double,double> output_size(State* s) {
+    auto [w,h]=paper_size(s);
+    unsigned orientation=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->orientation));
+    unsigned layout=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->layout));
+    if(orientation==2 || (orientation==0 && (layout==1 || layout==2))) std::swap(w,h);
+    return {w,h};
 }
 static void export_clicked(GtkButton*,gpointer data) {
     auto* s=static_cast<State*>(data);
@@ -93,7 +107,8 @@ static void export_clicked(GtkButton*,gpointer data) {
     try {
         auto target=std::filesystem::path(s->path);
         target.replace_filename(target.stem().string()+"-print-studio.pdf");
-        lps::export_pdf(s->path,target.string(),layout_sides(s));
+        auto [w,h]=output_size(s);
+        lps::export_pdf(s->path,target.string(),layout_sides(s),w,h);
         status(s,"Exported: "+target.string());
     }catch(const std::exception& e){status(s,e.what());}
 }
@@ -104,7 +119,8 @@ static void print_clicked(GtkButton*,gpointer data) {
     if(selected>=s->printer_names.size()){status(s,"Select a printer");return;}
     try {
         auto target=std::filesystem::temp_directory_path()/("linux-print-studio-"+std::to_string(g_get_real_time())+".pdf");
-        lps::export_pdf(s->path,target.string(),layout_sides(s));
+        auto [w,h]=output_size(s);
+        lps::export_pdf(s->path,target.string(),layout_sides(s),w,h);
         int id=lps::print_pdf(target.string(),s->printer_names[selected],
             gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(s->copies)),
             gtk_check_button_get_active(GTK_CHECK_BUTTON(s->duplex)));
@@ -135,9 +151,17 @@ static void activate(GApplication* application,gpointer) {
     gtk_widget_set_margin_top(side,18);
     gtk_box_append(GTK_BOX(body),side);
     gtk_box_append(GTK_BOX(side),label("Page layout"));
-    const char* layouts[]={"Normal","Booklet","2 pages / sheet","4 pages / sheet","9 pages / sheet",nullptr};
+    const char* layouts[]={"Normal","Booklet","2 pages / sheet","4 pages / sheet","6 pages / sheet","9 pages / sheet","16 pages / sheet",nullptr};
     s->layout=gtk_drop_down_new_from_strings(layouts);
     gtk_box_append(GTK_BOX(side),s->layout);
+    gtk_box_append(GTK_BOX(side),label("Orientation"));
+    const char* orientations[]={"Automatic","Portrait","Landscape",nullptr};
+    s->orientation=gtk_drop_down_new_from_strings(orientations);
+    gtk_box_append(GTK_BOX(side),s->orientation);
+    gtk_box_append(GTK_BOX(side),label("Paper size"));
+    const char* papers[]={"A4","Letter","Legal",nullptr};
+    s->paper=gtk_drop_down_new_from_strings(papers);
+    gtk_box_append(GTK_BOX(side),s->paper);
     gtk_box_append(GTK_BOX(side),label("Printer"));
     s->printer_names=lps::printers();
     auto def=lps::default_printer();

@@ -73,6 +73,7 @@ jobs:
 
   memory-safety:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Install build and analysis dependencies
@@ -89,5 +90,5 @@ jobs:
       - name: Static analysis (core and tests)
         run: |
           test -f build-sanitize/compile_commands.json
-          clang-tidy -p build-sanitize src/core.cpp tests/core_tests.cpp --checks='-*,clang-analyzer-*,bugprone-*,cert-*' --warnings-as-errors='clang-analyzer-*,bugprone-*' 2>&1 | tee clang-tidy.log
+          timeout --signal=TERM --kill-after=10s 180s clang-tidy -p build-sanitize src/core.cpp tests/core_tests.cpp --checks='-*,clang-analyzer-*,bugprone-*,cert-*' --header-filter='^(.*/)?(src|include|tests)/' --warnings-as-errors='clang-analyzer-*,bugprone-*' 2>&1 | tee clang-tidy.log
           test ${PIPESTATUS[0]} -eq 0

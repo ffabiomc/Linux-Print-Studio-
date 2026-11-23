@@ -21,9 +21,8 @@ jobs:
         run: ctest --test-dir build --output-on-failure
       - name: Package Debian
         run: |
-          cmake --install build --prefix staging/usr
-          mkdir -p pkg/DEBIAN pkg/usr
-          cp -a staging/usr/. pkg/usr/
+          mkdir -p pkg/DEBIAN
+          DESTDIR="$PWD/pkg" cmake --install build --prefix /usr
           printf 'Package: linux-print-studio-cpp\nVersion: 1.0.2-${{ github.run_number }}\nArchitecture: amd64\nMaintainer: Linux Print Studio\nDepends: libgtk-4-1, libadwaita-1-0, libpoppler-glib8, libcups2, libcairo2\nDescription: Linux Print Studio GTK edition\n' > pkg/DEBIAN/control
           dpkg-deb --build pkg linux-print-studio-cpp_1.0.2-${{ github.run_number }}_amd64.deb
       - uses: actions/upload-artifact@v4
@@ -38,7 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Fedora dependencies
-        run: dnf install -y gcc-c++ cmake ninja-build pkgconf-pkg-config gtk4-devel libadwaita-devel poppler-glib-devel cairo-devel cups-devel rpm-build
+        run: dnf install -y gcc-c++ cmake ninja-build pkgconf-pkg-config gtk4-devel libadwaita-devel poppler-glib-devel cairo-devel cups-devel rpm-build gettext
       - name: Configure
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
       - name: Build
@@ -63,8 +62,11 @@ jobs:
           %install
           mkdir -p %{buildroot}/usr/bin
           install -m 0755 %{_topdir}/../../staging/usr/bin/linux-print-studio %{buildroot}/usr/bin/linux-print-studio
+          mkdir -p %{buildroot}/usr/share/locale/pt_BR/LC_MESSAGES
+          install -m 0644 %{_topdir}/../../staging/usr/share/locale/pt_BR/LC_MESSAGES/linux-print-studio.mo %{buildroot}/usr/share/locale/pt_BR/LC_MESSAGES/linux-print-studio.mo
           %files
           /usr/bin/linux-print-studio
+          /usr/share/locale/pt_BR/LC_MESSAGES/linux-print-studio.mo
           SPEC
           sed -i "s|%{_topdir}/../../staging|$PWD/staging|" rpmbuild/SPECS/linux-print-studio-cpp.spec
           rpmbuild -bb --define "_topdir $PWD/rpmbuild" rpmbuild/SPECS/linux-print-studio-cpp.spec

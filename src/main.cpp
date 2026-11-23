@@ -6,18 +6,29 @@
 #include <cmath>
 #include <filesystem>
 #include <memory>
+#include <utility>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
+namespace {
+template<typename T> struct ObjectUnref {
+    void operator()(T* ptr) const noexcept { if(ptr) g_object_unref(ptr); }
+};
+template<typename T> using ObjectPtr=std::unique_ptr<T,ObjectUnref<T>>;
+struct GFree {
+    void operator()(gchar* ptr) const noexcept { g_free(ptr); }
+};
+using OwnedString=std::unique_ptr<gchar,GFree>;
+}
 struct State {
     GtkWidget *window=nullptr,*preview=nullptr,*status=nullptr,*page_label=nullptr;
     GtkWidget *layout=nullptr,*orientation=nullptr,*paper=nullptr,*copies=nullptr,*duplex=nullptr,*printer=nullptr;
-    PopplerDocument* doc=nullptr;
+    ObjectPtr<PopplerDocument> doc;
     std::string path;
     std::vector<std::string> printer_names;
     int page=0;
-    ~State(){if(doc)g_object_unref(doc);}
+
 };
 static void status(State* s,const std::string& message) { gtk_label_set_text(GTK_LABEL(s->status),message.c_str()); }
 static std::vector<lps::Side> layout_sides(State* s);
@@ -47,13 +58,14 @@ static void preview_draw(GtkDrawingArea*,cairo_t* cr,int width,int height,gpoint
     const size_t rows=(count+cols-1)/cols;
     const double cellw=pw/cols, cellh=ph/rows;
     for(size_t j=0;j<count;j++) {
-        if(!side[j]) continue;
-        const size_t page_index=*side[j]-1;
-        if(page_index>=static_cast<size_t>(poppler_document_get_n_pages(s->doc))) continue;
-        PopplerPage* page=poppler_document_get_page(s->doc,static_cast<int>(page_index));
+        const auto& selected_page=side[j];
+        if(!selected_page.has_value() || selected_page.value()==0) continue;
+        const size_t page_index=selected_page.value()-1;
+        if(page_index>=static_cast<size_t>(poppler_document_get_n_pages(s->doc.get()))) continue;
+        ObjectPtr<PopplerPage> page(poppler_document_get_page(s->doc.get(),static_cast<int>(page_index)));
         if(!page) continue;
         double w=0,h=0;
-        poppler_page_get_size(page,&w,&h);
+        poppler_page_get_size(page.get(),&w,&h);
         if(w>0 && h>0) {
             const double scale=std::min(cellw/w,cellh/h);
             const double cx=(j%cols)*cellw, cy=(j/cols)*cellh;
@@ -62,10 +74,9 @@ static void preview_draw(GtkDrawingArea*,cairo_t* cr,int width,int height,gpoint
             cairo_clip(cr);
             cairo_translate(cr,cx+(cellw-w*scale)/2,cy+(cellh-h*scale)/2);
             cairo_scale(cr,scale,scale);
-            poppler_page_render_for_printing(page,cr);
+            poppler_page_render_for_printing(page.get(),cr);
             cairo_restore(cr);
         }
-        g_object_unref(page);
     }
     cairo_restore(cr);
 }
@@ -85,24 +96,24 @@ static void layout_changed(GObject*,GParamSpec*,gpointer data) {
 }
 static void load_pdf(State* s,const char* path) {
     GError* err=nullptr;
-    gchar* uri=g_filename_to_uri(path,nullptr,&err);
+    OwnedString uri(g_filename_to_uri(path,nullptr,&err));
     if(!uri) {status(s,err?err->message:"Invalid path");g_clear_error(&err);return;}
-    PopplerDocument* doc=poppler_document_new_from_file(uri,nullptr,&err);
-    g_free(uri);
+    ObjectPtr<PopplerDocument> doc(poppler_document_new_from_file(uri.get(),nullptr,&err));
     if(!doc) {status(s,err?err->message:"Could not open PDF");g_clear_error(&err);return;}
-    if(s->doc)g_object_unref(s->doc);
-    s->doc=doc;s->path=path;s->page=0;
+    s->doc=std::move(doc);s->path=path;s->page=0;
     status(s,std::filesystem::path(path).filename().string());
     update_page(s);
 }
-static void chooser_response(GtkNativeDialog* dialog,int response,gpointer data) {
-    auto* s=static_cast<State*>(data);
-    if(response==GTK_RESPONSE_ACCEPT) {
-        GFile* file=gtk_file_chooser_get_file(GTK_FILE_CHOOSER(dialog));
+static void chooser_response(GtkNativeDialog* dialog,int response,gpointer) {
+    // The dialog owns a reference to the window until the response callback ends.
+    // This keeps the State stored on the window alive even if the user closes it.
+    auto* owner=static_cast<GtkWidget*>(g_object_get_data(G_OBJECT(dialog),"owner-window"));
+    auto* s=owner?static_cast<State*>(g_object_get_data(G_OBJECT(owner),"state")):nullptr;
+    if(s && response==GTK_RESPONSE_ACCEPT) {
+        ObjectPtr<GFile> file(gtk_file_chooser_get_file(GTK_FILE_CHOOSER(dialog)));
         if(file) {
-            char* path=g_file_get_path(file);
-            if(path) {load_pdf(s,path);g_free(path);}
-            g_object_unref(file);
+            OwnedString path(g_file_get_path(file.get()));
+            if(path) load_pdf(s,path.get());
         }
     }
     g_object_unref(dialog);
@@ -110,11 +121,14 @@ static void chooser_response(GtkNativeDialog* dialog,int response,gpointer data)
 static void open_clicked(GtkButton*,gpointer data) {
     auto* s=static_cast<State*>(data);
     auto* chooser=gtk_file_chooser_native_new("Open PDF",GTK_WINDOW(s->window),GTK_FILE_CHOOSER_ACTION_OPEN,"Open","Cancel");
+    // Explicitly retain the window for asynchronous file-chooser callbacks.
+    g_object_set_data_full(G_OBJECT(chooser),"owner-window",g_object_ref(s->window),
+                           [](gpointer owner){g_object_unref(owner);});
     GtkFileFilter* filter=gtk_file_filter_new();
     gtk_file_filter_set_name(filter,"PDF documents");
     gtk_file_filter_add_mime_type(filter,"application/pdf");
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(chooser),filter);
-    g_signal_connect(chooser,"response",G_CALLBACK(chooser_response),s);
+    g_signal_connect(chooser,"response",G_CALLBACK(chooser_response),nullptr);
     gtk_native_dialog_show(GTK_NATIVE_DIALOG(chooser));
 }
 static void page_back(GtkButton*,gpointer data){auto* s=static_cast<State*>(data);s->page--;update_page(s);}
@@ -169,11 +183,12 @@ static void print_clicked(GtkButton*,gpointer data) {
 }
 static GtkWidget* label(const char* text){auto* w=gtk_label_new(text);gtk_widget_set_halign(w,GTK_ALIGN_START);return w;}
 static void activate(GApplication* application,gpointer) {
-    auto* s=new State();
+    auto state=std::make_unique<State>();
+    auto* s=state.get();
     s->window=adw_application_window_new(GTK_APPLICATION(application));
     gtk_window_set_title(GTK_WINDOW(s->window),"Linux Print Studio");
     gtk_window_set_default_size(GTK_WINDOW(s->window),1080,720);
-    g_object_set_data_full(G_OBJECT(s->window),"state",s,[](gpointer p){delete static_cast<State*>(p);});
+    g_object_set_data_full(G_OBJECT(s->window),"state",state.release(),[](gpointer p){std::unique_ptr<State> owned(static_cast<State*>(p));});
     auto* outer=gtk_box_new(GTK_ORIENTATION_VERTICAL,0);
     adw_application_window_set_content(ADW_APPLICATION_WINDOW(s->window),outer);
     auto* header=adw_header_bar_new();
@@ -207,14 +222,13 @@ static void activate(GApplication* application,gpointer) {
     gtk_box_append(GTK_BOX(side),label("Printer"));
     s->printer_names=lps::printers();
     auto def=lps::default_printer();
-    GtkStringList* models=gtk_string_list_new(nullptr);
+    ObjectPtr<GtkStringList> models(gtk_string_list_new(nullptr));
     unsigned default_index=0;
     for(size_t i=0;i<s->printer_names.size();i++) {
-        gtk_string_list_append(models,s->printer_names[i].c_str());
+        gtk_string_list_append(models.get(),s->printer_names[i].c_str());
         if(s->printer_names[i]==def)default_index=static_cast<unsigned>(i);
     }
-    s->printer=gtk_drop_down_new(G_LIST_MODEL(models),nullptr);
-    g_object_unref(models);
+    s->printer=gtk_drop_down_new(G_LIST_MODEL(models.get()),nullptr);
     gtk_drop_down_set_selected(GTK_DROP_DOWN(s->printer),s->printer_names.empty()?GTK_INVALID_LIST_POSITION:default_index);
     gtk_box_append(GTK_BOX(side),s->printer);
     gtk_box_append(GTK_BOX(side),label("Copies"));
@@ -256,9 +270,8 @@ static void activate(GApplication* application,gpointer) {
     gtk_window_present(GTK_WINDOW(s->window));
 }
 int main(int argc,char** argv) {
-    auto* app=adw_application_new("io.github.ffabiomc.LinuxPrintStudio",G_APPLICATION_DEFAULT_FLAGS);
-    g_signal_connect(app,"activate",G_CALLBACK(activate),nullptr);
-    int result=g_application_run(G_APPLICATION(app),argc,argv);
-    g_object_unref(app);
+    ObjectPtr<AdwApplication> app(adw_application_new("io.github.ffabiomc.LinuxPrintStudio",G_APPLICATION_DEFAULT_FLAGS));
+    g_signal_connect(app.get(),"activate",G_CALLBACK(activate),nullptr);
+    int result=g_application_run(G_APPLICATION(app.get()),argc,argv);
     return result;
 }

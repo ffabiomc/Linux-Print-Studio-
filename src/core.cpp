@@ -87,7 +87,7 @@ void export_pdf(const std::string& input,const std::string& output,const std::ve
     std::unique_ptr<cairo_surface_t,SurfaceDeleter> surface(cairo_pdf_surface_create(output.c_str(),pw,ph));
     if(cairo_surface_status(surface.get())!=CAIRO_STATUS_SUCCESS) throw std::runtime_error("PDF surface failed");
     std::unique_ptr<cairo_t,ContextDeleter> cr(cairo_create(surface.get()));
-    if(cairo_status(cr.get().get())!=CAIRO_STATUS_SUCCESS) throw std::runtime_error("Cairo context failed");
+    if(cairo_status(cr.get())!=CAIRO_STATUS_SUCCESS) throw std::runtime_error("Cairo context failed");
     for(const auto& side:sides) {
         if(side.empty()) continue;
         size_t count=side.size();

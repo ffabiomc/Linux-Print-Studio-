@@ -28,10 +28,11 @@ using OwnedString=std::unique_ptr<gchar,GFree>;
 }
 struct State {
     GtkWidget *window=nullptr,*preview=nullptr,*status=nullptr,*page_label=nullptr,*prev_button=nullptr,*next_button=nullptr,*print_button=nullptr,*export_button=nullptr,*document_info=nullptr,*zoom=nullptr,*scroller=nullptr;
-    GtkWidget *layout=nullptr,*orientation=nullptr,*paper=nullptr,*copies=nullptr,*duplex=nullptr,*printer=nullptr,*reverse_backs=nullptr,*manual_fronts=nullptr,*manual_backs=nullptr,*preview_pass=nullptr,*duplex_hint=nullptr,*calibration_front=nullptr,*calibration_back=nullptr;
+    GtkWidget *printer_details=nullptr,*layout=nullptr,*orientation=nullptr,*paper=nullptr,*copies=nullptr,*duplex=nullptr,*printer=nullptr,*reverse_backs=nullptr,*manual_fronts=nullptr,*manual_backs=nullptr,*preview_pass=nullptr,*duplex_hint=nullptr,*calibration_front=nullptr,*calibration_back=nullptr;
     ObjectPtr<PopplerDocument> doc;
     std::string path;
     std::vector<std::string> printer_names;
+    std::vector<std::string> printer_descriptions;
     int page=0;
     double zoom_factor=1.0;
     bool fit_width=false;
@@ -204,6 +205,41 @@ static void update_page(State* s) {
     if(manual) refresh_duplex_hint(s);
     resize_preview(s);
     gtk_widget_queue_draw(s->preview);
+}
+static void printer_changed(GObject*,GParamSpec*,gpointer data) {
+    auto* s=static_cast<State*>(data);
+    if(!s->printer_details) return;
+    const unsigned selected=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->printer));
+    const bool valid=selected<s->printer_names.size();
+    gtk_label_set_text(GTK_LABEL(s->printer_details),
+        valid?s->printer_descriptions[selected].c_str():tr("No printers configured"));
+    if(s->print_button) gtk_widget_set_sensitive(s->print_button,valid && static_cast<bool>(s->doc));
+    if(s->manual_fronts) gtk_widget_set_sensitive(s->manual_fronts,valid && static_cast<bool>(s->doc));
+    if(s->calibration_front) gtk_widget_set_sensitive(s->calibration_front,valid);
+}
+static void refresh_printers(State* s) {
+    const unsigned old_index=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->printer));
+    const std::string previous=old_index<s->printer_names.size()?s->printer_names[old_index]:"";
+    const auto destinations=lps::printer_details();
+    s->printer_names.clear();
+    s->printer_descriptions.clear();
+    ObjectPtr<GtkStringList> models(gtk_string_list_new(nullptr));
+    const std::string preferred=previous.empty()?lps::default_printer():previous;
+    unsigned selected=GTK_INVALID_LIST_POSITION;
+    for(const auto& item:destinations) {
+        const unsigned index=static_cast<unsigned>(s->printer_names.size());
+        s->printer_names.push_back(item.name);
+        s->printer_descriptions.push_back(item.description);
+        gtk_string_list_append(models.get(),item.name.c_str());
+        if(item.name==preferred) selected=index;
+    }
+    if(selected==GTK_INVALID_LIST_POSITION && !s->printer_names.empty()) selected=0;
+    gtk_drop_down_set_model(GTK_DROP_DOWN(s->printer),G_LIST_MODEL(models.get()));
+    gtk_drop_down_set_selected(GTK_DROP_DOWN(s->printer),selected);
+    printer_changed(nullptr,nullptr,s);
+}
+static void refresh_printers_clicked(GtkButton*,gpointer data) {
+    refresh_printers(static_cast<State*>(data));
 }
 static void layout_changed(GObject*,GParamSpec*,gpointer data) {
     auto* s=static_cast<State*>(data);
@@ -510,17 +546,20 @@ static void activate(GApplication* application,gpointer) {
     g_signal_connect(s->orientation,"notify::selected",G_CALLBACK(layout_changed),s);
     g_signal_connect(s->paper,"notify::selected",G_CALLBACK(layout_changed),s);
     gtk_box_append(GTK_BOX(side),label(tr("Printer")));
-    s->printer_names=lps::printers();
-    auto def=lps::default_printer();
-    ObjectPtr<GtkStringList> models(gtk_string_list_new(nullptr));
-    unsigned default_index=0;
-    for(size_t i=0;i<s->printer_names.size();i++) {
-        gtk_string_list_append(models.get(),s->printer_names[i].c_str());
-        if(s->printer_names[i]==def)default_index=static_cast<unsigned>(i);
-    }
-    s->printer=gtk_drop_down_new(G_LIST_MODEL(models.get()),nullptr);
-    gtk_drop_down_set_selected(GTK_DROP_DOWN(s->printer),s->printer_names.empty()?GTK_INVALID_LIST_POSITION:default_index);
-    gtk_box_append(GTK_BOX(side),s->printer);
+    s->printer=gtk_drop_down_new_from_strings(nullptr);
+    auto* printer_row=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,6);
+    gtk_widget_set_hexpand(s->printer,TRUE);
+    gtk_box_append(GTK_BOX(printer_row),s->printer);
+    auto* refresh=gtk_button_new_from_icon_name("view-refresh-symbolic");
+    gtk_widget_set_tooltip_text(refresh,tr("Refresh printers"));
+    gtk_box_append(GTK_BOX(printer_row),refresh);
+    gtk_box_append(GTK_BOX(side),printer_row);
+    s->printer_details=label(tr("No printers configured"));
+    gtk_label_set_wrap(GTK_LABEL(s->printer_details),TRUE);
+    gtk_box_append(GTK_BOX(side),s->printer_details);
+    g_signal_connect(s->printer,"notify::selected",G_CALLBACK(printer_changed),s);
+    g_signal_connect(refresh,"clicked",G_CALLBACK(refresh_printers_clicked),s);
+    refresh_printers(s);
     gtk_box_append(GTK_BOX(side),label(tr("Copies")));
     s->copies=gtk_spin_button_new_with_range(1,999,1);
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(s->copies),1);

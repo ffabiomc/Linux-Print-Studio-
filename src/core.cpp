@@ -22,9 +22,11 @@ struct Options { cups_option_t* data=nullptr; int count=0; ~Options(){cupsFreeOp
 std::vector<Side> n_up(size_t pages, size_t per_sheet) {
     if (!pages || (per_sheet!=1 && per_sheet!=2 && per_sheet!=4 && per_sheet!=6 && per_sheet!=9 && per_sheet!=16)) throw std::invalid_argument("Invalid N-up layout");
     std::vector<Side> out;
-    for(size_t i=1;i<=pages;) {
+    for(size_t first=1;first<=pages;) {
         Side side(per_sheet);
-        for(auto& slot:side) if(i<=pages) slot=i++;
+        for(size_t slot=0;slot<per_sheet && first<=pages;slot++,first++) {
+            side[slot]=first;
+        }
         out.push_back(std::move(side));
     }
     return out;

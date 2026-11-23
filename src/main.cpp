@@ -215,7 +215,7 @@ static void printer_changed(GObject*,GParamSpec*,gpointer data) {
     const bool valid=selected<s->printer_names.size();
     gtk_label_set_text(GTK_LABEL(s->printer_details),
         valid?s->printer_descriptions[selected].c_str():tr("No printers configured"));
-    if(s->print_button) gtk_widget_set_sensitive(s->print_button,valid && static_cast<bool>(s->doc));
+    if(s->print_button) gtk_widget_set_sensitive(s->print_button,valid && static_cast<bool>(s->doc) && s->page_selection_valid);
     if(s->manual_fronts) gtk_widget_set_sensitive(s->manual_fronts,valid && static_cast<bool>(s->doc));
     if(s->calibration_front) gtk_widget_set_sensitive(s->calibration_front,valid);
 }
@@ -412,7 +412,7 @@ static void print_clicked(GtkButton*,gpointer data) {
 static void manual_fronts_clicked(GtkButton*,gpointer data) {
     auto* s=static_cast<State*>(data);
     if(!s->doc){status(s,tr("Open a PDF first"));return;}
-    if(gtk_drop_down_get_selected(GTK_DROP_DOWN(s->duplex))!=3) return;
+    if(gtk_drop_down_get_selected(GTK_DROP_DOWN(s->duplex))!=3 || !s->page_selection_valid) return;
     std::string printer_name;
     if(!selected_printer(s,printer_name)) return;
     try {

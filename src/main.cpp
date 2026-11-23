@@ -78,7 +78,7 @@ static void save_duplex_profile(State* s) {
     const auto printer=selected_printer_name(s);
     if(printer.empty()) {status(s,tr("Select a printer"));return;}
     const auto path=duplex_profile_path();
-    ObjectPtr<GKeyFile> file(g_key_file_new());
+    std::unique_ptr<GKeyFile,decltype(&g_key_file_free)> file(g_key_file_new(),g_key_file_free);
     g_key_file_load_from_file(file.get(),path.c_str(),G_KEY_FILE_NONE,nullptr);
     g_key_file_set_boolean(file.get(),printer.c_str(),"reverse-backs",
         gtk_check_button_get_active(GTK_CHECK_BUTTON(s->reverse_backs)));
@@ -798,7 +798,6 @@ static void activate(GApplication* application,gpointer) {
     s->reload_check=gtk_check_button_new_with_label(tr("Paper reloaded and printer has finished"));
     gtk_widget_set_visible(s->reload_check,FALSE);
     gtk_widget_set_sensitive(s->reload_check,FALSE);
-    gtk_label_set_wrap(GTK_LABEL(gtk_check_button_get_child(GTK_CHECK_BUTTON(s->reload_check))),TRUE);
     g_signal_connect(s->reload_check,"toggled",G_CALLBACK(reload_toggled),s);
     gtk_box_append(GTK_BOX(side),s->reload_check);
     s->manual_backs=gtk_button_new_with_label(tr("3. Print backs"));

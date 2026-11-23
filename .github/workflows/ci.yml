@@ -78,7 +78,7 @@ jobs:
       - name: Install build and analysis dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++ clang-tidy pkg-config libgtk-4-dev libadwaita-1-dev libpoppler-glib-dev libcairo2-dev libcups2-dev libgnutls28-dev libavahi-client-dev
       - name: Configure with AddressSanitizer and UndefinedBehaviorSanitizer
-        run: cmake -S . -B build-sanitize -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all" -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+        run: cmake -S . -B build-sanitize -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all" -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
       - name: Build instrumented binaries
         run: cmake --build build-sanitize --parallel 2
       - name: Run instrumented tests
@@ -88,5 +88,6 @@ jobs:
         run: ctest --test-dir build-sanitize --output-on-failure
       - name: Static analysis (core and tests)
         run: |
+          test -f build-sanitize/compile_commands.json
           clang-tidy -p build-sanitize src/core.cpp tests/core_tests.cpp --checks='-*,clang-analyzer-*,bugprone-*,cert-*' --warnings-as-errors='clang-analyzer-*,bugprone-*' 2>&1 | tee clang-tidy.log
           test ${PIPESTATUS[0]} -eq 0

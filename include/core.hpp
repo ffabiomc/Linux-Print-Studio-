@@ -17,5 +17,7 @@ std::string default_printer();
 int page_count(const std::string& path);
 void export_pdf(const std::string& input, const std::string& output,
                 const std::vector<Side>& sides, double paper_width=595.0, double paper_height=842.0);
-int print_pdf(const std::string& path, const std::string& printer, int copies, bool duplex);
+enum class PrintSides { Simplex, LongEdge, ShortEdge };
+int print_pdf(const std::string& path, const std::string& printer, int copies, PrintSides sides);
+std::vector<Side> select_sides(const std::vector<Side>& sides, const std::vector<size_t>& indices);
 }

@@ -15,4 +15,12 @@ int main() {
     assert(d.fronts[0]==1 && d.backs[0]==8 && d.backs[3]==2);
     bool failed=false;try {lps::n_up(2,3);}catch(const std::invalid_argument&){failed=true;}
     assert(failed);
+    failed=false;
+    try { lps::export_pdf("missing.pdf","out.pdf",lps::n_up(1,1),-1,842); }
+    catch(const std::invalid_argument&) { failed=true; }
+    assert(failed);
+    failed=false;
+    try { lps::export_pdf("missing.pdf","out.pdf",lps::n_up(1,1),1e100,842); }
+    catch(const std::invalid_argument&) { failed=true; }
+    assert(failed);
 }

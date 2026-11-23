@@ -546,7 +546,8 @@ static void activate(GApplication* application,gpointer) {
     g_signal_connect(s->orientation,"notify::selected",G_CALLBACK(layout_changed),s);
     g_signal_connect(s->paper,"notify::selected",G_CALLBACK(layout_changed),s);
     gtk_box_append(GTK_BOX(side),label(tr("Printer")));
-    s->printer=gtk_drop_down_new_from_strings(nullptr);
+    const char* empty_printers[]={nullptr};
+    s->printer=gtk_drop_down_new_from_strings(empty_printers);
     auto* printer_row=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,6);
     gtk_widget_set_hexpand(s->printer,TRUE);
     gtk_box_append(GTK_BOX(printer_row),s->printer);

@@ -39,6 +39,10 @@ struct State {
     bool fit_width=false;
     int last_view_width=0,last_view_height=0;
     bool manual_fronts_sent=false;
+    bool reload_confirmed=false;
+    std::string manual_printer;
+    std::string manual_document;
+    GtkWidget *reload_check=nullptr,*wizard_step=nullptr,*feed_direction=nullptr,*calibration_save=nullptr;
     bool page_selection_valid=true;
     lps::RenderOptions render_options;
     std::vector<size_t> selected_page_numbers;
@@ -47,6 +51,8 @@ struct State {
 static void status(State* s,const std::string& message) { gtk_label_set_text(GTK_LABEL(s->status),message.c_str()); }
 static std::vector<lps::Side> layout_sides(State* s);
 static void advanced_changed(GObject*,GParamSpec*,gpointer);
+static void refresh_manual_wizard(State* s);
+static void reset_manual_wizard(State* s);
 static std::pair<double,double> output_size(State* s);
 static std::vector<lps::Side> visible_sides(State* s) {
     const auto all=layout_sides(s);
@@ -60,6 +66,86 @@ static std::vector<lps::Side> visible_sides(State* s) {
     if(indices.empty()) return {};
     return lps::select_sides(all,indices);
 }
+static std::string duplex_profile_path() {
+    return std::string(g_get_user_config_dir())+"/linux-print-studio/duplex-profiles.ini";
+}
+static std::string selected_printer_name(State* s) {
+    if(!s->printer) return {};
+    const unsigned index=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->printer));
+    return index<s->printer_names.size()?s->printer_names[index]:std::string{};
+}
+static void save_duplex_profile(State* s) {
+    const auto printer=selected_printer_name(s);
+    if(printer.empty()) {status(s,tr("Select a printer"));return;}
+    const auto path=duplex_profile_path();
+    ObjectPtr<GKeyFile> file(g_key_file_new());
+    g_key_file_load_from_file(file.get(),path.c_str(),G_KEY_FILE_NONE,nullptr);
+    g_key_file_set_boolean(file.get(),printer.c_str(),"reverse-backs",
+        gtk_check_button_get_active(GTK_CHECK_BUTTON(s->reverse_backs)));
+    g_key_file_set_integer(file.get(),printer.c_str(),"feed-direction",
+        static_cast<int>(gtk_drop_down_get_selected(GTK_DROP_DOWN(s->feed_direction))));
+    const auto directory=std::filesystem::path(path).parent_path();
+    std::error_code error;
+    std::filesystem::create_directories(directory,error);
+    if(error) {status(s,error.message());return;}
+    GError* gerror=nullptr;
+    if(!g_key_file_save_to_file(file.get(),path.c_str(),&gerror)) {
+        status(s,gerror?gerror->message:tr("Could not save calibration"));
+        g_clear_error(&gerror);return;
+    }
+    status(s,tr("Calibration saved for this printer"));
+}
+static void load_duplex_profile(State* s) {
+    if(!s->feed_direction || !s->reverse_backs) return;
+    ObjectPtr<GKeyFile> file(g_key_file_new());
+    const auto path=duplex_profile_path();
+    const auto printer=selected_printer_name(s);
+    if(printer.empty() || !g_key_file_load_from_file(file.get(),path.c_str(),G_KEY_FILE_NONE,nullptr)) return;
+    if(g_key_file_has_key(file.get(),printer.c_str(),"reverse-backs",nullptr))
+        gtk_check_button_set_active(GTK_CHECK_BUTTON(s->reverse_backs),
+            g_key_file_get_boolean(file.get(),printer.c_str(),"reverse-backs",nullptr));
+    if(g_key_file_has_key(file.get(),printer.c_str(),"feed-direction",nullptr)) {
+        const int direction=g_key_file_get_integer(file.get(),printer.c_str(),"feed-direction",nullptr);
+        if(direction>=0 && direction<=2)
+            gtk_drop_down_set_selected(GTK_DROP_DOWN(s->feed_direction),static_cast<guint>(direction));
+    }
+}
+static void reset_manual_wizard(State* s) {
+    s->manual_fronts_sent=false;
+    s->reload_confirmed=false;
+    s->manual_printer.clear();
+    s->manual_document.clear();
+    if(s->reload_check) gtk_check_button_set_active(GTK_CHECK_BUTTON(s->reload_check),FALSE);
+    if(s->manual_backs) gtk_widget_set_sensitive(s->manual_backs,FALSE);
+    refresh_manual_wizard(s);
+}
+static void refresh_manual_wizard(State* s) {
+    if(!s->wizard_step) return;
+    const bool manual=s->duplex && gtk_drop_down_get_selected(GTK_DROP_DOWN(s->duplex))==3;
+    if(!manual) return;
+    const bool valid=s->doc && s->page_selection_valid && !selected_printer_name(s).empty();
+    const auto all=s->doc && s->page_selection_valid?layout_sides(s):std::vector<lps::Side>{};
+    const bool has_backs=all.size()>1;
+    if(s->manual_fronts) gtk_widget_set_sensitive(s->manual_fronts,valid && !s->manual_fronts_sent);
+    if(s->reload_check) gtk_widget_set_sensitive(s->reload_check,s->manual_fronts_sent && has_backs);
+    if(s->manual_backs) gtk_widget_set_sensitive(s->manual_backs,
+        s->manual_fronts_sent && s->reload_confirmed && has_backs &&
+        valid && selected_printer_name(s)==s->manual_printer && s->path==s->manual_document);
+    const char* step=!valid?tr("Select a PDF and printer to begin"):
+        !s->manual_fronts_sent?tr("Step 1 of 3: Print the front sides"):
+        !has_backs?tr("Only front sides are needed"):
+        !s->reload_confirmed?tr("Step 2 of 3: Reload paper and confirm"):
+        tr("Step 3 of 3: Print the back sides");
+    gtk_label_set_text(GTK_LABEL(s->wizard_step),step);
+}
+static void reload_toggled(GtkCheckButton* check,gpointer data) {
+    auto* s=static_cast<State*>(data);
+    s->reload_confirmed=gtk_check_button_get_active(check);
+    refresh_manual_wizard(s);
+}
+static void calibration_save_clicked(GtkButton*,gpointer data) {
+    save_duplex_profile(static_cast<State*>(data));
+}
 static void refresh_duplex_hint(State* s) {
     if(!s->duplex_hint || !s->doc) return;
     const auto all=layout_sides(s);
@@ -71,6 +157,7 @@ static void refresh_duplex_hint(State* s) {
         "Reload paper according to your printer's feed direction, then print backs. "
         "Test with two sheets before a large job.";
     gtk_label_set_text(GTK_LABEL(s->duplex_hint),message.c_str());
+    refresh_manual_wizard(s);
 }
 
 static void resize_preview(State* s) {
@@ -249,6 +336,7 @@ static void printer_changed(GObject*,GParamSpec*,gpointer data) {
     if(s->print_button) gtk_widget_set_sensitive(s->print_button,valid && static_cast<bool>(s->doc) && s->page_selection_valid);
     if(s->manual_fronts) gtk_widget_set_sensitive(s->manual_fronts,valid && static_cast<bool>(s->doc));
     if(s->calibration_front) gtk_widget_set_sensitive(s->calibration_front,valid);
+    if(s->wizard_step) refresh_manual_wizard(s);
 }
 static void refresh_printers(State* s) {
     const unsigned old_index=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->printer));
@@ -270,6 +358,8 @@ static void refresh_printers(State* s) {
     gtk_drop_down_set_model(GTK_DROP_DOWN(s->printer),G_LIST_MODEL(models.get()));
     gtk_drop_down_set_selected(GTK_DROP_DOWN(s->printer),selected);
     printer_changed(nullptr,nullptr,s);
+    load_duplex_profile(s);
+    reset_manual_wizard(s);
 }
 static void refresh_printers_clicked(GtkButton*,gpointer data) {
     refresh_printers(static_cast<State*>(data));
@@ -297,8 +387,7 @@ static void page_selection_changed(GObject*,GParamSpec*,gpointer data) {
     gtk_widget_remove_css_class(s->page_range,"error");
     s->selected_page_numbers=std::move(pages);
     s->page=0;
-    s->manual_fronts_sent=false;
-    if(s->manual_backs) gtk_widget_set_sensitive(s->manual_backs,FALSE);
+    reset_manual_wizard(s);
     update_page(s);
 }
 static void page_range_changed(GtkEditable*,gpointer data) {
@@ -470,13 +559,19 @@ static void manual_fronts_clicked(GtkButton*,gpointer data) {
             gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(s->copies)),lps::PrintSides::Simplex,
             static_cast<int>(gtk_drop_down_get_selected(GTK_DROP_DOWN(s->quality_control))));
         s->manual_fronts_sent=true;
-        gtk_widget_set_sensitive(s->manual_backs,TRUE);
+        s->manual_printer=printer_name;
+        s->manual_document=s->path;
+        s->reload_confirmed=false;
+        if(s->reload_check) gtk_check_button_set_active(GTK_CHECK_BUTTON(s->reload_check),FALSE);
+        refresh_manual_wizard(s);
         status(s,"Fronts submitted (job "+std::to_string(id)+"). Wait for printing to finish, reload paper, then click Print backs.");
     }catch(const std::exception& e){status(s,e.what());}
 }
 static void manual_backs_clicked(GtkButton*,gpointer data) {
     auto* s=static_cast<State*>(data);
-    if(!s->doc || !s->manual_fronts_sent ||
+    if(!s->doc || !s->manual_fronts_sent || !s->reload_confirmed ||
+       !s->page_selection_valid || s->path!=s->manual_document ||
+       selected_printer_name(s)!=s->manual_printer ||
        gtk_drop_down_get_selected(GTK_DROP_DOWN(s->duplex))!=3) return;
     try {
         const auto sides=layout_sides(s);
@@ -485,8 +580,7 @@ static void manual_backs_clicked(GtkButton*,gpointer data) {
         if(plan.backs.empty()){status(s,tr("No back sides required"));return;}
         const auto selected=lps::select_sides(sides,plan.backs);
         if(print_selected(s,selected,lps::PrintSides::Simplex,tr("Back sides submitted; check paper orientation"))) {
-            s->manual_fronts_sent=false;
-            gtk_widget_set_sensitive(s->manual_backs,FALSE);
+            reset_manual_wizard(s);
         }
     }catch(const std::exception& e){status(s,e.what());}
 }
@@ -563,12 +657,15 @@ static void duplex_changed(GObject*,GParamSpec*,gpointer data) {
     gtk_widget_set_visible(s->reverse_backs,manual);
     gtk_widget_set_visible(s->manual_fronts,manual);
     gtk_widget_set_visible(s->manual_backs,manual);
-    s->manual_fronts_sent=false;
-    gtk_widget_set_sensitive(s->manual_backs,FALSE);
+    reset_manual_wizard(s);
     gtk_widget_set_visible(s->preview_pass,manual);
     gtk_widget_set_visible(s->duplex_hint,manual);
     gtk_widget_set_visible(s->calibration_front,manual);
     gtk_widget_set_visible(s->calibration_back,manual);
+    if(s->reload_check) gtk_widget_set_visible(s->reload_check,manual);
+    if(s->wizard_step) gtk_widget_set_visible(s->wizard_step,manual);
+    if(s->feed_direction) gtk_widget_set_visible(s->feed_direction,manual);
+    if(s->calibration_save) gtk_widget_set_visible(s->calibration_save,manual);
     gtk_drop_down_set_selected(GTK_DROP_DOWN(s->preview_pass),0);
     s->page=0;
     update_page(s);
@@ -689,11 +786,22 @@ static void activate(GApplication* application,gpointer) {
     s->reverse_backs=gtk_check_button_new_with_label(tr("Reverse back-side order"));
     gtk_widget_set_visible(s->reverse_backs,FALSE);
     gtk_box_append(GTK_BOX(side),s->reverse_backs);
+    s->wizard_step=gtk_label_new(tr("Step 1 of 3: Print the front sides"));
+    gtk_label_set_wrap(GTK_LABEL(s->wizard_step),TRUE);
+    gtk_label_set_xalign(GTK_LABEL(s->wizard_step),0);
+    gtk_widget_set_visible(s->wizard_step,FALSE);
+    gtk_box_append(GTK_BOX(side),s->wizard_step);
     s->manual_fronts=gtk_button_new_with_label(tr("1. Print fronts"));
     gtk_widget_set_visible(s->manual_fronts,FALSE);
     g_signal_connect(s->manual_fronts,"clicked",G_CALLBACK(manual_fronts_clicked),s);
     gtk_box_append(GTK_BOX(side),s->manual_fronts);
-    s->manual_backs=gtk_button_new_with_label(tr("2. Print backs (after reloading paper)"));
+    s->reload_check=gtk_check_button_new_with_label(tr("Paper reloaded and printer has finished"));
+    gtk_widget_set_visible(s->reload_check,FALSE);
+    gtk_widget_set_sensitive(s->reload_check,FALSE);
+    gtk_label_set_wrap(GTK_LABEL(gtk_check_button_get_child(GTK_CHECK_BUTTON(s->reload_check))),TRUE);
+    g_signal_connect(s->reload_check,"toggled",G_CALLBACK(reload_toggled),s);
+    gtk_box_append(GTK_BOX(side),s->reload_check);
+    s->manual_backs=gtk_button_new_with_label(tr("3. Print backs"));
     gtk_widget_set_visible(s->manual_backs,FALSE);
     gtk_widget_set_sensitive(s->manual_backs,FALSE);
     g_signal_connect(s->manual_backs,"clicked",G_CALLBACK(manual_backs_clicked),s);
@@ -719,6 +827,16 @@ static void activate(GApplication* application,gpointer) {
     gtk_widget_set_sensitive(s->calibration_back,FALSE);
     g_signal_connect(s->calibration_back,"clicked",G_CALLBACK(calibration_clicked),s);
     gtk_box_append(GTK_BOX(side),s->calibration_back);
+    gtk_box_append(GTK_BOX(side),label(tr("Paper reload orientation (calibrate first)")));
+    const char* feeds[]={tr("Not calibrated"),tr("Top edge first"),tr("Bottom edge first"),nullptr};
+    s->feed_direction=gtk_drop_down_new_from_strings(feeds);
+    gtk_widget_set_visible(s->feed_direction,FALSE);
+    gtk_box_append(GTK_BOX(side),s->feed_direction);
+    s->calibration_save=gtk_button_new_with_label(tr("Save calibration for printer"));
+    gtk_widget_set_visible(s->calibration_save,FALSE);
+    g_signal_connect(s->calibration_save,"clicked",G_CALLBACK(calibration_save_clicked),s);
+    gtk_box_append(GTK_BOX(side),s->calibration_save);
+    load_duplex_profile(s);
     auto* export_button=gtk_button_new_with_label(tr("Export PDF"));
     s->export_button=export_button;
     gtk_widget_add_css_class(export_button,"suggested-action");

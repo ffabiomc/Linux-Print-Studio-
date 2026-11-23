@@ -76,13 +76,13 @@ jobs:
 
   memory-safety:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - name: Install build and analysis dependencies
         run: |
-          sudo timeout --signal=TERM --kill-after=10s 150s apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update
-          sudo timeout --signal=TERM --kill-after=10s 180s apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y --no-install-recommends cmake ninja-build g++ clang-tidy pkg-config libgtk-4-dev libadwaita-1-dev libpoppler-glib-dev libcairo2-dev libcups2-dev libgnutls28-dev libavahi-client-dev
+          sudo timeout --signal=TERM --kill-after=10s 180s apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update
+          sudo timeout --signal=TERM --kill-after=10s 600s apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y --no-install-recommends cmake ninja-build g++ clang-tidy pkg-config libgtk-4-dev libadwaita-1-dev libpoppler-glib-dev libcairo2-dev libcups2-dev libgnutls28-dev libavahi-client-dev
       - name: Configure with AddressSanitizer and UndefinedBehaviorSanitizer
         run: cmake -S . -B build-sanitize -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all" -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
       - name: Build instrumented binaries

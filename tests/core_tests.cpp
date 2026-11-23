@@ -15,6 +15,18 @@ int main() {
         try {lps::parse_page_range(invalid,10);}catch(const std::invalid_argument&){rejected=true;}
         assert(rejected);
     }
+    lps::validate_render_options({},595,842);
+    lps::RenderOptions advanced;
+    advanced.scale_percent=125;advanced.margin_mm=12;advanced.centered=false;advanced.grayscale=true;
+    lps::validate_render_options(advanced,595,842);
+    bool bad_render=false;
+    advanced.scale_percent=201;
+    try {lps::validate_render_options(advanced,595,842);}catch(const std::invalid_argument&){bad_render=true;}
+    assert(bad_render);
+    advanced.scale_percent=100;advanced.margin_mm=50;
+    bad_render=false;
+    try {lps::validate_render_options(advanced,100,100);}catch(const std::invalid_argument&){bad_render=true;}
+    assert(bad_render);
     auto b=lps::booklet(8);
     assert(b.size()==4 && b[0][0]==8 && b[0][1]==1);
     assert(b[1][0]==2 && b[1][1]==7);

@@ -1,5 +1,7 @@
 #include "core.hpp"
-#include <cassert>
+#include <cstdlib>
+#include <iostream>
+#define assert(condition) do { if(!(condition)) { std::cerr << "Test failed: " #condition << " at line " << __LINE__ << '\n'; return EXIT_FAILURE; } } while(false)
 #include <stdexcept>
 int main() {
     auto b=lps::booklet(8);

@@ -70,3 +70,23 @@ jobs:
         with:
           name: linux-print-studio-cpp-fedora-rpm
           path: '*.rpm'
+
+  memory-safety:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build and analysis dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++ clang-tidy pkg-config libgtk-4-dev libadwaita-1-dev libpoppler-glib-dev libcairo2-dev libcups2-dev libgnutls28-dev libavahi-client-dev
+      - name: Configure with AddressSanitizer and UndefinedBehaviorSanitizer
+        run: cmake -S . -B build-sanitize -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all" -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+      - name: Build instrumented binaries
+        run: cmake --build build-sanitize --parallel 2
+      - name: Run instrumented tests
+        env:
+          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+        run: ctest --test-dir build-sanitize --output-on-failure
+      - name: Static analysis (core and tests)
+        run: |
+          clang-tidy -p build-sanitize src/core.cpp tests/core_tests.cpp --checks='-*,clang-analyzer-*,bugprone-*,cert-*' --warnings-as-errors='clang-analyzer-*,bugprone-*' 2>&1 | tee clang-tidy.log
+          test ${PIPESTATUS[0]} -eq 0

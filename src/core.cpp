@@ -100,7 +100,7 @@ void export_pdf(const std::string& input,const std::string& output,const std::ve
         for(size_t j=0;j<count;j++) {
             if(!side[j]) continue;
             if(*side[j]<1 || *side[j]>static_cast<size_t>(poppler_document_get_n_pages(d.document.get()))) continue;
-            PopplerPage* page=poppler_document_get_page(d.document,static_cast<int>(*side[j]-1));
+            GPtr<PopplerPage> page(poppler_document_get_page(d.document.get(),static_cast<int>(*side[j]-1)));
             if(!page) continue;
             double w=0,h=0;poppler_page_get_size(page.get(),&w,&h);
             if(w>0 && h>0) {
@@ -109,7 +109,7 @@ void export_pdf(const std::string& input,const std::string& output,const std::ve
                 double y=(j/cols)*cellh+(cellh-h*scale)/2;
                 cairo_save(cr.get());cairo_rectangle(cr.get(),(j%cols)*cellw,(j/cols)*cellh,cellw,cellh);cairo_clip(cr.get());
                 cairo_translate(cr.get(),x,y);cairo_scale(cr.get(),scale,scale);
-                poppler_page_render_for_printing(page,cr);cairo_restore(cr.get());
+                poppler_page_render_for_printing(page.get(),cr.get());cairo_restore(cr.get());
             }
         }
         cairo_show_page(cr.get());

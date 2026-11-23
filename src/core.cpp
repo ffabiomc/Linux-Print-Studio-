@@ -9,6 +9,16 @@
 #include <stdexcept>
 
 namespace lps {
+namespace {
+template<class T> struct GDeleter { void operator()(T* p) const noexcept { if(p) g_object_unref(p); } };
+template<class T> using GPtr=std::unique_ptr<T,GDeleter<T>>;
+struct FreeDeleter { void operator()(gchar* p) const noexcept { g_free(p); } };
+struct SurfaceDeleter { void operator()(cairo_surface_t* p) const noexcept { if(p) cairo_surface_destroy(p); } };
+struct ContextDeleter { void operator()(cairo_t* p) const noexcept { if(p) cairo_destroy(p); } };
+struct Dests { cups_dest_t* data=nullptr; int count=0; ~Dests(){cupsFreeDests(count,data);} };
+struct Options { cups_option_t* data=nullptr; int count=0; ~Options(){cupsFreeOptions(count,data);} };
+}
+
 std::vector<Side> n_up(size_t pages, size_t per_sheet) {
     if (!pages || (per_sheet!=1 && per_sheet!=2 && per_sheet!=4 && per_sheet!=6 && per_sheet!=9 && per_sheet!=16)) throw std::invalid_argument("Invalid N-up layout");
     std::vector<Side> out;
@@ -44,11 +54,10 @@ DuplexPlan manual_duplex(size_t sides,bool reverse_backs) {
     return result;
 }
 std::vector<std::string> printers() {
-    cups_dest_t* dests=nullptr;
-    int n=cupsGetDests(&dests);
+    Dests dests;
+    dests.count=cupsGetDests(&dests.data);
     std::vector<std::string> result;
-    for(int i=0;i<n;i++) if(dests[i].name) result.emplace_back(dests[i].name);
-    cupsFreeDests(n,dests);
+    for(int i=0;i<dests.count;i++) if(dests.data[i].name) result.emplace_back(dests.data[i].name);
     return result;
 }
 std::string default_printer() {
@@ -56,30 +65,29 @@ std::string default_printer() {
     return p?p:"";
 }
 struct Doc {
-    PopplerDocument* document=nullptr;
+    GPtr<PopplerDocument> document;
     explicit Doc(const std::string& path) {
         GError* error=nullptr;
-        gchar* uri=g_filename_to_uri(path.c_str(),nullptr,&error);
+        std::unique_ptr<gchar,FreeDeleter> uri(g_filename_to_uri(path.c_str(),nullptr,&error));
         if(!uri) {
             std::string message=error?error->message:"Invalid path";
             g_clear_error(&error); throw std::runtime_error(message);
         }
-        document=poppler_document_new_from_file(uri,nullptr,&error);
-        g_free(uri);
+        document.reset(poppler_document_new_from_file(uri.get(),nullptr,&error));
         if(!document) {
             std::string message=error?error->message:"Unable to open PDF";
             g_clear_error(&error); throw std::runtime_error(message);
         }
     }
-    ~Doc(){ if(document) g_object_unref(document); }
 };
-int page_count(const std::string& path) { Doc d(path); return poppler_document_get_n_pages(d.document); }
+int page_count(const std::string& path) { Doc d(path); return poppler_document_get_n_pages(d.document.get()); }
 void export_pdf(const std::string& input,const std::string& output,const std::vector<Side>& sides,double pw,double ph) {
-    if(sides.empty() || pw<=0 || ph<=0 || input==output) throw std::invalid_argument("Invalid export");
+    if(sides.empty() || !std::isfinite(pw) || !std::isfinite(ph) || pw<=0 || ph<=0 || pw>14400 || ph>14400 || input==output) throw std::invalid_argument("Invalid export");
     Doc d(input);
-    cairo_surface_t* surface=cairo_pdf_surface_create(output.c_str(),pw,ph);
-    if(cairo_surface_status(surface)!=CAIRO_STATUS_SUCCESS) { cairo_surface_destroy(surface); throw std::runtime_error("PDF surface failed"); }
-    cairo_t* cr=cairo_create(surface);
+    std::unique_ptr<cairo_surface_t,SurfaceDeleter> surface(cairo_pdf_surface_create(output.c_str(),pw,ph));
+    if(cairo_surface_status(surface.get())!=CAIRO_STATUS_SUCCESS) throw std::runtime_error("PDF surface failed");
+    std::unique_ptr<cairo_t,ContextDeleter> cr(cairo_create(surface.get()));
+    if(cairo_status(cr.get().get())!=CAIRO_STATUS_SUCCESS) throw std::runtime_error("Cairo context failed");
     for(const auto& side:sides) {
         if(side.empty()) continue;
         size_t count=side.size();
@@ -88,39 +96,35 @@ void export_pdf(const std::string& input,const std::string& output,const std::ve
                      static_cast<size_t>(std::ceil(std::sqrt(static_cast<double>(count)))));
         size_t rows=(count+cols-1)/cols;
         double cellw=pw/cols, cellh=ph/rows;
-        cairo_set_source_rgb(cr,1,1,1);cairo_paint(cr);
+        cairo_set_source_rgb(cr.get(),1,1,1);cairo_paint(cr.get());
         for(size_t j=0;j<count;j++) {
             if(!side[j]) continue;
-            if(*side[j]<1 || *side[j]>static_cast<size_t>(poppler_document_get_n_pages(d.document))) continue;
+            if(*side[j]<1 || *side[j]>static_cast<size_t>(poppler_document_get_n_pages(d.document.get()))) continue;
             PopplerPage* page=poppler_document_get_page(d.document,static_cast<int>(*side[j]-1));
             if(!page) continue;
-            double w=0,h=0;poppler_page_get_size(page,&w,&h);
+            double w=0,h=0;poppler_page_get_size(page.get(),&w,&h);
             if(w>0 && h>0) {
                 double scale=std::min(cellw/w,cellh/h);
                 double x=(j%cols)*cellw+(cellw-w*scale)/2;
                 double y=(j/cols)*cellh+(cellh-h*scale)/2;
-                cairo_save(cr);cairo_rectangle(cr,(j%cols)*cellw,(j/cols)*cellh,cellw,cellh);cairo_clip(cr);
-                cairo_translate(cr,x,y);cairo_scale(cr,scale,scale);
-                poppler_page_render_for_printing(page,cr);cairo_restore(cr);
+                cairo_save(cr.get());cairo_rectangle(cr.get(),(j%cols)*cellw,(j/cols)*cellh,cellw,cellh);cairo_clip(cr.get());
+                cairo_translate(cr.get(),x,y);cairo_scale(cr.get(),scale,scale);
+                poppler_page_render_for_printing(page,cr);cairo_restore(cr.get());
             }
-            g_object_unref(page);
         }
-        cairo_show_page(cr);
+        cairo_show_page(cr.get());
     }
-    cairo_status_t status=cairo_status(cr);
-    cairo_destroy(cr);cairo_surface_finish(surface);
-    if(status==CAIRO_STATUS_SUCCESS) status=cairo_surface_status(surface);
-    cairo_surface_destroy(surface);
+    cairo_status_t status=cairo_status(cr.get());
+    cr.reset();cairo_surface_finish(surface.get());
+    if(status==CAIRO_STATUS_SUCCESS) status=cairo_surface_status(surface.get());
     if(status!=CAIRO_STATUS_SUCCESS) throw std::runtime_error("PDF export failed");
 }
 int print_pdf(const std::string& path,const std::string& printer,int copies,bool duplex) {
     if(printer.empty() || copies<1 || copies>999) throw std::invalid_argument("Invalid print options");
-    cups_option_t* options=nullptr;
-    int n=0;
-    n=cupsAddOption("copies",std::to_string(copies).c_str(),n,&options);
-    if(duplex) n=cupsAddOption("sides","two-sided-long-edge",n,&options);
-    int id=cupsPrintFile(printer.c_str(),path.c_str(),"Linux Print Studio",n,options);
-    cupsFreeOptions(n,options);
+    Options options;
+    options.count=cupsAddOption("copies",std::to_string(copies).c_str(),options.count,&options.data);
+    if(duplex) options.count=cupsAddOption("sides","two-sided-long-edge",options.count,&options.data);
+    int id=cupsPrintFile(printer.c_str(),path.c_str(),"Linux Print Studio",options.count,options.data);
     if(id<=0) throw std::runtime_error(cupsLastErrorString());
     return id;
 }

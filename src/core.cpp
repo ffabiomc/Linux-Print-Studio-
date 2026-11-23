@@ -239,13 +239,18 @@ std::vector<Side> select_sides(const std::vector<Side>& sides,const std::vector<
     }
     return result;
 }
-int print_pdf(const std::string& path,const std::string& printer,int copies,PrintSides sides) {
+int print_pdf(const std::string& path,const std::string& printer,int copies,PrintSides sides,int quality) {
     if(printer.empty() || copies<1 || copies>999) throw std::invalid_argument("Invalid print options");
     Options options;
     options.count=cupsAddOption("copies",std::to_string(copies).c_str(),options.count,&options.data);
     const char* binding=sides==PrintSides::LongEdge?"two-sided-long-edge":
                         sides==PrintSides::ShortEdge?"two-sided-short-edge":"one-sided";
     options.count=cupsAddOption("sides",binding,options.count,&options.data);
+    if(quality<0 || quality>3) throw std::invalid_argument("Invalid print quality");
+    if(quality) {
+        const char* value=quality==1?"3":quality==2?"4":"5";
+        options.count=cupsAddOption("print-quality",value,options.count,&options.data);
+    }
     int id=cupsPrintFile(printer.c_str(),path.c_str(),"Linux Print Studio",options.count,options.data);
     if(id<=0) throw std::runtime_error(cupsLastErrorString());
     return id;

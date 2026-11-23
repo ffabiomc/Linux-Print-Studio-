@@ -12,6 +12,8 @@ std::vector<Side> booklet(size_t pages);
 std::vector<Side> poster(size_t pages, size_t columns, size_t rows);
 struct DuplexPlan { std::vector<size_t> fronts, backs; };
 DuplexPlan manual_duplex(size_t sides, bool reverse_backs);
+struct PrinterInfo { std::string name, description; };
+std::vector<PrinterInfo> printer_details();
 std::vector<std::string> printers();
 std::string default_printer();
 int page_count(const std::string& path);

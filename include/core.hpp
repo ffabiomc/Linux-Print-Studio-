@@ -7,6 +7,8 @@
 namespace lps {
 using Slot = std::optional<size_t>;
 using Side = std::vector<Slot>;
+std::vector<size_t> parse_page_range(const std::string& expression, size_t total_pages);
+std::vector<Side> remap_pages(const std::vector<Side>& sides, const std::vector<size_t>& pages);
 std::vector<Side> n_up(size_t pages, size_t per_sheet);
 std::vector<Side> booklet(size_t pages);
 std::vector<Side> poster(size_t pages, size_t columns, size_t rows);

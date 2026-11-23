@@ -14,6 +14,23 @@ target_link_libraries(print_core PUBLIC PkgConfig::POPPLER PkgConfig::CAIRO PkgC
 target_compile_options(print_core PRIVATE -Wall -Wextra -Wpedantic)
 add_executable(linux-print-studio src/main.cpp)
 target_link_libraries(linux-print-studio PRIVATE print_core PkgConfig::GTK PkgConfig::ADWAITA)
+include(GNUInstallDirs)
+target_compile_definitions(linux-print-studio PRIVATE LPS_LOCALE_DIR="${CMAKE_INSTALL_FULL_LOCALEDIR}")
+# Optional gettext catalogs: English remains the fallback when none are installed.
+find_program(MSGFMT_EXECUTABLE msgfmt)
+file(GLOB LPS_TRANSLATIONS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/po/*.po")
+if(MSGFMT_EXECUTABLE)
+  foreach(PO_FILE IN LISTS LPS_TRANSLATIONS)
+    get_filename_component(LANGUAGE "${PO_FILE}" NAME_WE)
+    set(MO_FILE "${CMAKE_CURRENT_BINARY_DIR}/locale/${LANGUAGE}/LC_MESSAGES/linux-print-studio.mo")
+    add_custom_command(OUTPUT "${MO_FILE}"
+      COMMAND "${CMAKE_COMMAND}" -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/locale/${LANGUAGE}/LC_MESSAGES"
+      COMMAND "${MSGFMT_EXECUTABLE}" -o "${MO_FILE}" "${PO_FILE}"
+      DEPENDS "${PO_FILE}" VERBATIM)
+    add_custom_target("translation_${LANGUAGE}" ALL DEPENDS "${MO_FILE}")
+    install(FILES "${MO_FILE}" DESTINATION "${CMAKE_INSTALL_LOCALEDIR}/${LANGUAGE}/LC_MESSAGES")
+  endforeach()
+endif()
 enable_testing()
 add_executable(core_tests tests/core_tests.cpp)
 target_link_libraries(core_tests PRIVATE print_core)

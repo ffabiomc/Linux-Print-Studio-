@@ -252,3 +252,54 @@ msgstr "Normal"
 
 msgid "High quality"
 msgstr "Alta qualidade"
+
+msgid "Select a PDF and printer to begin"
+msgstr "Selecione um PDF e uma impressora para começar"
+
+msgid "Step 1 of 3: Print the front sides"
+msgstr "Etapa 1 de 3: imprimir as frentes"
+
+msgid "Step 2 of 3: Reload paper and confirm"
+msgstr "Etapa 2 de 3: recolocar o papel e confirmar"
+
+msgid "Step 3 of 3: Print the back sides"
+msgstr "Etapa 3 de 3: imprimir os versos"
+
+msgid "Only front sides are needed"
+msgstr "Somente as frentes são necessárias"
+
+msgid "Paper reloaded and printer has finished"
+msgstr "A impressora terminou e recoloquei o papel"
+
+msgid "3. Print backs"
+msgstr "3. Imprimir versos"
+
+msgid "Paper reload orientation (calibrate first)"
+msgstr "Orientação do papel (calibre primeiro)"
+
+msgid "Not calibrated"
+msgstr "Não calibrado"
+
+msgid "Top edge first"
+msgstr "Borda superior primeiro"
+
+msgid "Bottom edge first"
+msgstr "Borda inferior primeiro"
+
+msgid "Save calibration for printer"
+msgstr "Salvar calibração desta impressora"
+
+msgid "Calibration saved for this printer"
+msgstr "Calibração salva para esta impressora"
+
+msgid "Could not save calibration"
+msgstr "Não foi possível salvar a calibração"
+
+msgid "After the front pass finishes, reload the stack with its top edge entering first, as verified by calibration."
+msgstr "Após imprimir as frentes, recoloque as folhas com a borda superior entrando primeiro, conforme a calibração."
+
+msgid "After the front pass finishes, reload the stack with its bottom edge entering first, as verified by calibration."
+msgstr "Após imprimir as frentes, recoloque as folhas com a borda inferior entrando primeiro, conforme a calibração."
+
+msgid "Paper orientation is not calibrated. Use the front/back calibration sheets before printing a large job."
+msgstr "A orientação não foi calibrada. Teste com as folhas de calibração antes de imprimir muitas páginas."

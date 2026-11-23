@@ -56,7 +56,7 @@ static void preview_draw(GtkDrawingArea*,cairo_t* cr,int width,int height,gpoint
                        count==6 ? (pw>=ph ? 3 : 2) :
                        static_cast<size_t>(std::ceil(std::sqrt(static_cast<double>(count)))));
     const size_t rows=(count+cols-1)/cols;
-    const double cellw=pw/cols, cellh=ph/rows;
+    const double cellw=pw/static_cast<double>(cols), cellh=ph/static_cast<double>(rows);
     for(size_t j=0;j<count;j++) {
         const auto& selected_page=side[j];
         if(!selected_page.has_value() || selected_page.value()==0) continue;
@@ -66,9 +66,10 @@ static void preview_draw(GtkDrawingArea*,cairo_t* cr,int width,int height,gpoint
         if(!page) continue;
         double w=0,h=0;
         poppler_page_get_size(page.get(),&w,&h);
-        if(w>0 && h>0) {
+        if(std::isfinite(w) && std::isfinite(h) && w>0 && h>0) {
             const double scale=std::min(cellw/w,cellh/h);
-            const double cx=(j%cols)*cellw, cy=(j/cols)*cellh;
+            const size_t row=j/cols;
+            const double cx=static_cast<double>(j%cols)*cellw, cy=static_cast<double>(row)*cellh;
             cairo_save(cr);
             cairo_rectangle(cr,cx,cy,cellw,cellh);
             cairo_clip(cr);

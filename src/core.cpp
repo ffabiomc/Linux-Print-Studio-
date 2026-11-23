@@ -55,6 +55,27 @@ DuplexPlan manual_duplex(size_t sides,bool reverse_backs) {
     if(reverse_backs) std::reverse(result.backs.begin(),result.backs.end());
     return result;
 }
+std::vector<PrinterInfo> printer_details() {
+    Dests dests;
+    dests.count=cupsGetDests(&dests.data);
+    std::vector<PrinterInfo> result;
+    for(int i=0;i<dests.count;i++) {
+        const auto& dest=dests.data[i];
+        if(!dest.name) continue;
+        const char* model=cupsGetOption("printer-make-and-model",dest.num_options,dest.options);
+        const char* location=cupsGetOption("printer-location",dest.num_options,dest.options);
+        const char* state=cupsGetOption("printer-state",dest.num_options,dest.options);
+        const char* accepting=cupsGetOption("printer-is-accepting-jobs",dest.num_options,dest.options);
+        const std::string state_text=state && std::string(state)=="5"?"Stopped":
+            state && std::string(state)=="4"?"Processing":"Idle";
+        std::string description=model && *model?model:dest.name;
+        description+=" · "+state_text;
+        if(accepting && std::string(accepting)=="false") description+=" · Not accepting jobs";
+        if(location && *location) description+=" · "+std::string(location);
+        result.push_back({dest.name,description});
+    }
+    return result;
+}
 std::vector<std::string> printers() {
     Dests dests;
     dests.count=cupsGetDests(&dests.data);

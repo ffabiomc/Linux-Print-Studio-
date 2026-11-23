@@ -20,29 +20,68 @@ struct State {
     ~State(){if(doc)g_object_unref(doc);}
 };
 static void status(State* s,const std::string& message) { gtk_label_set_text(GTK_LABEL(s->status),message.c_str()); }
+static std::vector<lps::Side> layout_sides(State* s);
+static std::pair<double,double> output_size(State* s);
 static void preview_draw(GtkDrawingArea*,cairo_t* cr,int width,int height,gpointer data) {
     auto* s=static_cast<State*>(data);
-    cairo_set_source_rgb(cr,.88,.89,.91);cairo_paint(cr);
-    if(!s->doc) return;
-    PopplerPage* page=poppler_document_get_page(s->doc,s->page);
-    if(!page)return;
-    double pw=0,ph=0;poppler_page_get_size(page,&pw,&ph);
-    if(pw>0&&ph>0) {
-        double scale=std::min((width-40.0)/pw,(height-40.0)/ph);
-        scale=std::max(scale,.01);
-        double x=(width-pw*scale)/2,y=(height-ph*scale)/2;
-        cairo_set_source_rgb(cr,1,1,1);cairo_rectangle(cr,x,y,pw*scale,ph*scale);cairo_fill(cr);
-        cairo_save(cr);cairo_translate(cr,x,y);cairo_scale(cr,scale,scale);
-        poppler_page_render(page,cr);cairo_restore(cr);
+    cairo_set_source_rgb(cr,.88,.89,.91);
+    cairo_paint(cr);
+    if(!s->doc || width<=40 || height<=40) return;
+    const auto sides=layout_sides(s);
+    if(sides.empty() || s->page<0 || static_cast<size_t>(s->page)>=sides.size()) return;
+    auto [pw,ph]=output_size(s);
+    if(pw<=0 || ph<=0) return;
+    const double zoom=std::max(.01,std::min((width-40.0)/pw,(height-40.0)/ph));
+    const double ox=(width-pw*zoom)/2.0, oy=(height-ph*zoom)/2.0;
+    cairo_save(cr);
+    cairo_translate(cr,ox,oy);
+    cairo_scale(cr,zoom,zoom);
+    cairo_set_source_rgb(cr,1,1,1);
+    cairo_rectangle(cr,0,0,pw,ph);
+    cairo_fill(cr);
+    const auto& side=sides[static_cast<size_t>(s->page)];
+    const size_t count=side.size();
+    const size_t cols=(count==2 ? (pw>=ph ? 2 : 1) :
+                       count==6 ? (pw>=ph ? 3 : 2) :
+                       static_cast<size_t>(std::ceil(std::sqrt(static_cast<double>(count)))));
+    const size_t rows=(count+cols-1)/cols;
+    const double cellw=pw/cols, cellh=ph/rows;
+    for(size_t j=0;j<count;j++) {
+        if(!side[j]) continue;
+        const size_t page_index=*side[j]-1;
+        if(page_index>=static_cast<size_t>(poppler_document_get_n_pages(s->doc))) continue;
+        PopplerPage* page=poppler_document_get_page(s->doc,static_cast<int>(page_index));
+        if(!page) continue;
+        double w=0,h=0;
+        poppler_page_get_size(page,&w,&h);
+        if(w>0 && h>0) {
+            const double scale=std::min(cellw/w,cellh/h);
+            const double cx=(j%cols)*cellw, cy=(j/cols)*cellh;
+            cairo_save(cr);
+            cairo_rectangle(cr,cx,cy,cellw,cellh);
+            cairo_clip(cr);
+            cairo_translate(cr,cx+(cellw-w*scale)/2,cy+(cellh-h*scale)/2);
+            cairo_scale(cr,scale,scale);
+            poppler_page_render_for_printing(page,cr);
+            cairo_restore(cr);
+        }
+        g_object_unref(page);
     }
-    g_object_unref(page);
+    cairo_restore(cr);
 }
 static void update_page(State* s) {
-    if(!s->doc)return;
-    int count=poppler_document_get_n_pages(s->doc);
+    if(!s->doc) return;
+    const auto sides=layout_sides(s);
+    const int count=static_cast<int>(sides.size());
     s->page=std::clamp(s->page,0,std::max(0,count-1));
-    gtk_label_set_text(GTK_LABEL(s->page_label),("Page "+std::to_string(s->page+1)+" / "+std::to_string(count)).c_str());
+    gtk_label_set_text(GTK_LABEL(s->page_label),
+        ("Sheet "+std::to_string(s->page+1)+" / "+std::to_string(count)).c_str());
     gtk_widget_queue_draw(s->preview);
+}
+static void layout_changed(GObject*,GParamSpec*,gpointer data) {
+    auto* s=static_cast<State*>(data);
+    s->page=0;
+    update_page(s);
 }
 static void load_pdf(State* s,const char* path) {
     GError* err=nullptr;
@@ -162,6 +201,9 @@ static void activate(GApplication* application,gpointer) {
     const char* papers[]={"A4","Letter","Legal",nullptr};
     s->paper=gtk_drop_down_new_from_strings(papers);
     gtk_box_append(GTK_BOX(side),s->paper);
+    g_signal_connect(s->layout,"notify::selected",G_CALLBACK(layout_changed),s);
+    g_signal_connect(s->orientation,"notify::selected",G_CALLBACK(layout_changed),s);
+    g_signal_connect(s->paper,"notify::selected",G_CALLBACK(layout_changed),s);
     gtk_box_append(GTK_BOX(side),label("Printer"));
     s->printer_names=lps::printers();
     auto def=lps::default_printer();

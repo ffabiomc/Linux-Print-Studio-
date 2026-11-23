@@ -29,6 +29,6 @@ void validate_render_options(const RenderOptions& options,double paper_width,dou
 void export_pdf(const std::string& input, const std::string& output,
                 const std::vector<Side>& sides, double paper_width=595.0, double paper_height=842.0, const RenderOptions& options={});
 enum class PrintSides { Simplex, LongEdge, ShortEdge };
-int print_pdf(const std::string& path, const std::string& printer, int copies, PrintSides sides);
+int print_pdf(const std::string& path, const std::string& printer, int copies, PrintSides sides, int quality=0);
 std::vector<Side> select_sides(const std::vector<Side>& sides, const std::vector<size_t>& indices);
 }

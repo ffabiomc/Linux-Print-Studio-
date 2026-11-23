@@ -208,7 +208,7 @@ void export_pdf(const std::string& input,const std::string& output,const std::ve
                 auto* pixels=cairo_image_surface_get_data(image.get());
                 const int stride=cairo_image_surface_get_stride(image.get());
                 for(int yy=0;yy<ih;yy++) {
-                    auto* row=reinterpret_cast<uint32_t*>(pixels+yy*stride);
+                    auto* row=reinterpret_cast<uint32_t*>(pixels+static_cast<std::ptrdiff_t>(yy)*stride);
                     for(int xx=0;xx<iw;xx++) {
                         const uint32_t px=row[xx];
                         const unsigned a=(px>>24)&255,red=(px>>16)&255,green=(px>>8)&255,blue=px&255;

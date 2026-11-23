@@ -23,11 +23,12 @@ using OwnedString=std::unique_ptr<gchar,GFree>;
 }
 struct State {
     GtkWidget *window=nullptr,*preview=nullptr,*status=nullptr,*page_label=nullptr;
-    GtkWidget *layout=nullptr,*orientation=nullptr,*paper=nullptr,*copies=nullptr,*duplex=nullptr,*printer=nullptr;
+    GtkWidget *layout=nullptr,*orientation=nullptr,*paper=nullptr,*copies=nullptr,*duplex=nullptr,*printer=nullptr,*reverse_backs=nullptr,*manual_fronts=nullptr,*manual_backs=nullptr;
     ObjectPtr<PopplerDocument> doc;
     std::string path;
     std::vector<std::string> printer_names;
     int page=0;
+    bool manual_fronts_sent=false;
 
 };
 static void status(State* s,const std::string& message) { gtk_label_set_text(GTK_LABEL(s->status),message.c_str()); }
@@ -93,6 +94,8 @@ static void update_page(State* s) {
 static void layout_changed(GObject*,GParamSpec*,gpointer data) {
     auto* s=static_cast<State*>(data);
     s->page=0;
+    s->manual_fronts_sent=false;
+    if(s->manual_backs) gtk_widget_set_sensitive(s->manual_backs,FALSE);
     update_page(s);
 }
 static void load_pdf(State* s,const char* path) {
@@ -102,6 +105,8 @@ static void load_pdf(State* s,const char* path) {
     ObjectPtr<PopplerDocument> doc(poppler_document_new_from_file(uri.get(),nullptr,&err));
     if(!doc) {status(s,err?err->message:"Could not open PDF");g_clear_error(&err);return;}
     s->doc=std::move(doc);s->path=path;s->page=0;
+    s->manual_fronts_sent=false;
+    if(s->manual_backs) gtk_widget_set_sensitive(s->manual_backs,FALSE);
     status(s,std::filesystem::path(path).filename().string());
     update_page(s);
 }
@@ -166,21 +171,82 @@ static void export_clicked(GtkButton*,gpointer data) {
         status(s,"Exported: "+target.string());
     }catch(const std::exception& e){status(s,e.what());}
 }
+static bool selected_printer(State* s,std::string& name) {
+    const auto selected=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->printer));
+    if(selected>=s->printer_names.size()) {status(s,"Select a printer");return false;}
+    name=s->printer_names[selected];
+    return true;
+}
+static void print_selected(State* s,const std::vector<lps::Side>& sides,lps::PrintSides binding,const std::string& message) {
+    std::string printer_name;
+    if(!selected_printer(s,printer_name)) return;
+    try {
+        const auto target=std::filesystem::temp_directory_path()/
+            ("linux-print-studio-"+std::to_string(g_get_real_time())+".pdf");
+        const auto [w,h]=output_size(s);
+        lps::export_pdf(s->path,target.string(),sides,w,h);
+        const int id=lps::print_pdf(target.string(),printer_name,
+            gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(s->copies)),binding);
+        status(s,message+" (CUPS job "+std::to_string(id)+")");
+    }catch(const std::exception& e){status(s,e.what());}
+}
 static void print_clicked(GtkButton*,gpointer data) {
     auto* s=static_cast<State*>(data);
     if(!s->doc){status(s,"Open a PDF first");return;}
-    auto selected=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->printer));
-    if(selected>=s->printer_names.size()){status(s,"Select a printer");return;}
+    const auto selected=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->duplex));
+    if(selected==3) {
+        status(s,"Manual duplex: click Print fronts first, then reload paper and click Print backs");
+        return;
+    }
+    const auto binding=selected==1?lps::PrintSides::LongEdge:
+                       selected==2?lps::PrintSides::ShortEdge:lps::PrintSides::Simplex;
+    print_selected(s,layout_sides(s),binding,"Print job submitted");
+}
+static void manual_fronts_clicked(GtkButton*,gpointer data) {
+    auto* s=static_cast<State*>(data);
+    if(!s->doc){status(s,"Open a PDF first");return;}
+    if(gtk_drop_down_get_selected(GTK_DROP_DOWN(s->duplex))!=3) return;
+    std::string printer_name;
+    if(!selected_printer(s,printer_name)) return;
     try {
-        auto target=std::filesystem::temp_directory_path()/("linux-print-studio-"+std::to_string(g_get_real_time())+".pdf");
-        auto [w,h]=output_size(s);
-        lps::export_pdf(s->path,target.string(),layout_sides(s),w,h);
-        int id=lps::print_pdf(target.string(),s->printer_names[selected],
-            gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(s->copies)),
-            gtk_check_button_get_active(GTK_CHECK_BUTTON(s->duplex)));
-        status(s,"CUPS job "+std::to_string(id)+" submitted");
-        // CUPS may still need the spooled file; keep it until the system cleans /tmp.
+        const auto sides=layout_sides(s);
+        const auto plan=lps::manual_duplex(sides.size(),
+            gtk_check_button_get_active(GTK_CHECK_BUTTON(s->reverse_backs)));
+        const auto selected=lps::select_sides(sides,plan.fronts);
+        const auto target=std::filesystem::temp_directory_path()/
+            ("linux-print-studio-fronts-"+std::to_string(g_get_real_time())+".pdf");
+        const auto [w,h]=output_size(s);
+        lps::export_pdf(s->path,target.string(),selected,w,h);
+        const int id=lps::print_pdf(target.string(),printer_name,
+            gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(s->copies)),lps::PrintSides::Simplex);
+        s->manual_fronts_sent=true;
+        gtk_widget_set_sensitive(s->manual_backs,TRUE);
+        status(s,"Fronts submitted (job "+std::to_string(id)+"). Wait for printing to finish, reload paper, then click Print backs.");
     }catch(const std::exception& e){status(s,e.what());}
+}
+static void manual_backs_clicked(GtkButton*,gpointer data) {
+    auto* s=static_cast<State*>(data);
+    if(!s->doc || !s->manual_fronts_sent ||
+       gtk_drop_down_get_selected(GTK_DROP_DOWN(s->duplex))!=3) return;
+    try {
+        const auto sides=layout_sides(s);
+        const auto plan=lps::manual_duplex(sides.size(),
+            gtk_check_button_get_active(GTK_CHECK_BUTTON(s->reverse_backs)));
+        if(plan.backs.empty()){status(s,"No back sides required");return;}
+        const auto selected=lps::select_sides(sides,plan.backs);
+        print_selected(s,selected,lps::PrintSides::Simplex,"Back sides submitted; check paper orientation");
+        s->manual_fronts_sent=false;
+        gtk_widget_set_sensitive(s->manual_backs,FALSE);
+    }catch(const std::exception& e){status(s,e.what());}
+}
+static void duplex_changed(GObject*,GParamSpec*,gpointer data) {
+    auto* s=static_cast<State*>(data);
+    const bool manual=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->duplex))==3;
+    gtk_widget_set_visible(s->reverse_backs,manual);
+    gtk_widget_set_visible(s->manual_fronts,manual);
+    gtk_widget_set_visible(s->manual_backs,manual);
+    s->manual_fronts_sent=false;
+    gtk_widget_set_sensitive(s->manual_backs,FALSE);
 }
 static GtkWidget* label(const char* text){auto* w=gtk_label_new(text);gtk_widget_set_halign(w,GTK_ALIGN_START);return w;}
 static void activate(GApplication* application,gpointer) {
@@ -236,8 +302,28 @@ static void activate(GApplication* application,gpointer) {
     s->copies=gtk_spin_button_new_with_range(1,999,1);
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(s->copies),1);
     gtk_box_append(GTK_BOX(side),s->copies);
-    s->duplex=gtk_check_button_new_with_label("Automatic duplex (long edge)");
+    gtk_box_append(GTK_BOX(side),label("Duplex mode"));
+    const char* duplex_modes[]={"One-sided","Automatic (long edge)","Automatic (short edge)","Manual (two passes)",nullptr};
+    s->duplex=gtk_drop_down_new_from_strings(duplex_modes);
     gtk_box_append(GTK_BOX(side),s->duplex);
+    s->reverse_backs=gtk_check_button_new_with_label("Reverse back-side order");
+    gtk_widget_set_visible(s->reverse_backs,FALSE);
+    gtk_box_append(GTK_BOX(side),s->reverse_backs);
+    s->manual_fronts=gtk_button_new_with_label("1. Print fronts");
+    gtk_widget_set_visible(s->manual_fronts,FALSE);
+    g_signal_connect(s->manual_fronts,"clicked",G_CALLBACK(manual_fronts_clicked),s);
+    gtk_box_append(GTK_BOX(side),s->manual_fronts);
+    s->manual_backs=gtk_button_new_with_label("2. Print backs (after reloading paper)");
+    gtk_widget_set_visible(s->manual_backs,FALSE);
+    gtk_widget_set_sensitive(s->manual_backs,FALSE);
+    g_signal_connect(s->manual_backs,"clicked",G_CALLBACK(manual_backs_clicked),s);
+    gtk_box_append(GTK_BOX(side),s->manual_backs);
+    g_signal_connect(s->duplex,"notify::selected",G_CALLBACK(duplex_changed),s);
+    g_signal_connect(s->reverse_backs,"toggled",G_CALLBACK(+[](GtkCheckButton*,gpointer data){
+        auto* state=static_cast<State*>(data);
+        state->manual_fronts_sent=false;
+        gtk_widget_set_sensitive(state->manual_backs,FALSE);
+    }),s);
     auto* export_button=gtk_button_new_with_label("Export PDF");
     gtk_widget_add_css_class(export_button,"suggested-action");
     g_signal_connect(export_button,"clicked",G_CALLBACK(export_clicked),s);

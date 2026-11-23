@@ -165,3 +165,27 @@ msgstr "Trabalho de impressão enviado"
 
 msgid "Back sides submitted; check paper orientation"
 msgstr "Versos enviados; verifique a orientação do papel"
+
+msgid "Open a PDF to preview and configure printing"
+msgstr "Abra um PDF para visualizar e configurar a impressão"
+
+msgid "Only local PDF files are supported"
+msgstr "Somente arquivos PDF locais são aceitos"
+
+msgid "Drop a PDF file"
+msgstr "Arraste um arquivo PDF"
+
+msgid "Zoom"
+msgstr "Zoom"
+
+msgid "Fit page"
+msgstr "Ajustar à página"
+
+msgid "Fit width"
+msgstr "Ajustar à largura"
+
+msgid "pages"
+msgstr "páginas"
+
+msgid "sheets"
+msgstr "folhas"

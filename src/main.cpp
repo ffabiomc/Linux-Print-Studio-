@@ -2,6 +2,7 @@
 #include <adwaita.h>
 #include <gtk/gtk.h>
 #include <poppler.h>
+#include <cairo-pdf.h>
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
@@ -23,7 +24,7 @@ using OwnedString=std::unique_ptr<gchar,GFree>;
 }
 struct State {
     GtkWidget *window=nullptr,*preview=nullptr,*status=nullptr,*page_label=nullptr;
-    GtkWidget *layout=nullptr,*orientation=nullptr,*paper=nullptr,*copies=nullptr,*duplex=nullptr,*printer=nullptr,*reverse_backs=nullptr,*manual_fronts=nullptr,*manual_backs=nullptr,*preview_pass=nullptr,*duplex_hint=nullptr;
+    GtkWidget *layout=nullptr,*orientation=nullptr,*paper=nullptr,*copies=nullptr,*duplex=nullptr,*printer=nullptr,*reverse_backs=nullptr,*manual_fronts=nullptr,*manual_backs=nullptr,*preview_pass=nullptr,*duplex_hint=nullptr,*calibration_front=nullptr,*calibration_back=nullptr;
     ObjectPtr<PopplerDocument> doc;
     std::string path;
     std::vector<std::string> printer_names;
@@ -273,6 +274,73 @@ static void manual_backs_clicked(GtkButton*,gpointer data) {
         }
     }catch(const std::exception& e){status(s,e.what());}
 }
+// Print a physical alignment target; printer feed direction must be verified by the user.
+static void calibration_clicked(GtkButton* button,gpointer data) {
+    auto* s=static_cast<State*>(data);
+    std::string printer_name;
+    if(!selected_printer(s,printer_name)) return;
+    const bool back=GTK_WIDGET(button)==s->calibration_back;
+    try {
+        const auto [w,h]=output_size(s);
+        const auto target=std::filesystem::temp_directory_path()/
+            ("linux-print-studio-calibration-"+std::to_string(g_get_real_time())+".pdf");
+        struct SurfaceDestroy {
+            void operator()(cairo_surface_t* p) const noexcept {if(p) cairo_surface_destroy(p);}
+        };
+        struct ContextDestroy {
+            void operator()(cairo_t* p) const noexcept {if(p) cairo_destroy(p);}
+        };
+        std::unique_ptr<cairo_surface_t,SurfaceDestroy> surface(
+            cairo_pdf_surface_create(target.string().c_str(),w,h));
+        if(!surface || cairo_surface_status(surface.get())!=CAIRO_STATUS_SUCCESS)
+            throw std::runtime_error("Unable to create calibration PDF");
+        std::unique_ptr<cairo_t,ContextDestroy> cr(cairo_create(surface.get()));
+        if(!cr || cairo_status(cr.get())!=CAIRO_STATUS_SUCCESS)
+            throw std::runtime_error("Unable to draw calibration PDF");
+        cairo_set_source_rgb(cr.get(),1,1,1);
+        cairo_paint(cr.get());
+        cairo_set_source_rgb(cr.get(),0,0,0);
+        cairo_set_line_width(cr.get(),2);
+        cairo_rectangle(cr.get(),24,24,w-48,h-48);
+        cairo_stroke(cr.get());
+        cairo_select_font_face(cr.get(),"Sans",CAIRO_FONT_SLANT_NORMAL,CAIRO_FONT_WEIGHT_BOLD);
+        cairo_set_font_size(cr.get(),22);
+        cairo_move_to(cr.get(),42,85);
+        cairo_show_text(cr.get(),back?"CALIBRATION - BACK":"CALIBRATION - FRONT");
+        cairo_set_font_size(cr.get(),13);
+        cairo_move_to(cr.get(),42,115);
+        cairo_show_text(cr.get(),"TOP EDGE - keep this mark visible");
+        cairo_move_to(cr.get(),42,h-65);
+        cairo_show_text(cr.get(),back?"BACK / BOTTOM":"FRONT / BOTTOM");
+        // Distinct corner markers make rotation and feed reversal observable.
+        cairo_set_font_size(cr.get(),30);
+        cairo_move_to(cr.get(),45,175);
+        cairo_show_text(cr.get(),back?"B1":"F1");
+        cairo_move_to(cr.get(),w-100,175);
+        cairo_show_text(cr.get(),back?"B2":"F2");
+        cairo_move_to(cr.get(),45,h-110);
+        cairo_show_text(cr.get(),back?"B3":"F3");
+        cairo_move_to(cr.get(),w-100,h-110);
+        cairo_show_text(cr.get(),back?"B4":"F4");
+        cairo_show_page(cr.get());
+        if(cairo_status(cr.get())!=CAIRO_STATUS_SUCCESS)
+            throw std::runtime_error("Calibration drawing failed");
+        cr.reset();
+        cairo_surface_finish(surface.get());
+        if(cairo_surface_status(surface.get())!=CAIRO_STATUS_SUCCESS)
+            throw std::runtime_error("Calibration PDF write failed");
+        surface.reset();
+        const int id=lps::print_pdf(target.string(),printer_name,1,lps::PrintSides::Simplex);
+        if(!back) {
+            gtk_widget_set_sensitive(s->calibration_back,TRUE);
+            status(s,"Calibration front submitted (job "+std::to_string(id)+
+                "). Wait until printed; reload the same sheet, then print calibration back.");
+        } else {
+            status(s,"Calibration back submitted (job "+std::to_string(id)+
+                "). Inspect F1-F4 and B1-B4 to determine feed direction. No automatic detection.");
+        }
+    }catch(const std::exception& e){status(s,e.what());}
+}
 static void duplex_changed(GObject*,GParamSpec*,gpointer data) {
     auto* s=static_cast<State*>(data);
     const bool manual=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->duplex))==3;
@@ -283,6 +351,8 @@ static void duplex_changed(GObject*,GParamSpec*,gpointer data) {
     gtk_widget_set_sensitive(s->manual_backs,FALSE);
     gtk_widget_set_visible(s->preview_pass,manual);
     gtk_widget_set_visible(s->duplex_hint,manual);
+    gtk_widget_set_visible(s->calibration_front,manual);
+    gtk_widget_set_visible(s->calibration_back,manual);
     gtk_drop_down_set_selected(GTK_DROP_DOWN(s->preview_pass),0);
     s->page=0;
     update_page(s);
@@ -381,6 +451,15 @@ static void activate(GApplication* application,gpointer) {
     gtk_label_set_xalign(GTK_LABEL(s->duplex_hint),0.0f);
     gtk_widget_set_visible(s->duplex_hint,FALSE);
     gtk_box_append(GTK_BOX(side),s->duplex_hint);
+    s->calibration_front=gtk_button_new_with_label("Calibration: print front");
+    gtk_widget_set_visible(s->calibration_front,FALSE);
+    g_signal_connect(s->calibration_front,"clicked",G_CALLBACK(calibration_clicked),s);
+    gtk_box_append(GTK_BOX(side),s->calibration_front);
+    s->calibration_back=gtk_button_new_with_label("Calibration: print back");
+    gtk_widget_set_visible(s->calibration_back,FALSE);
+    gtk_widget_set_sensitive(s->calibration_back,FALSE);
+    g_signal_connect(s->calibration_back,"clicked",G_CALLBACK(calibration_clicked),s);
+    gtk_box_append(GTK_BOX(side),s->calibration_back);
     auto* export_button=gtk_button_new_with_label("Export PDF");
     gtk_widget_add_css_class(export_button,"suggested-action");
     g_signal_connect(export_button,"clicked",G_CALLBACK(export_clicked),s);

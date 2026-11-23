@@ -195,3 +195,24 @@ msgstr "Atualizar impressoras"
 
 msgid "No printers configured"
 msgstr "Nenhuma impressora configurada"
+
+msgid "Pages to print"
+msgstr "Páginas para imprimir"
+
+msgid "All pages"
+msgstr "Todas as páginas"
+
+msgid "Even pages"
+msgstr "Páginas pares"
+
+msgid "Odd pages"
+msgstr "Páginas ímpares"
+
+msgid "Custom range"
+msgstr "Intervalo personalizado"
+
+msgid "Invalid page range"
+msgstr "Intervalo de páginas inválido"
+
+msgid "Invalid page range; use e.g. 1-5, 8, 12-15"
+msgstr "Intervalo inválido; use, por exemplo, 1-5, 8, 12-15"

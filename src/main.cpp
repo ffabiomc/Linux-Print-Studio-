@@ -7,6 +7,7 @@
 #include <locale.h>
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <filesystem>
 #include <memory>
 #include <utility>
@@ -169,7 +170,32 @@ static void preview_draw(GtkDrawingArea*,cairo_t* cr,int width,int height,gpoint
             cairo_translate(cr,cx+(s->render_options.centered?(cellw-w*scale)/2:0),
                 cy+(s->render_options.centered?(cellh-h*scale)/2:0));
             cairo_scale(cr,scale,scale);
-            poppler_page_render_for_printing(page.get(),cr);
+            if(s->render_options.grayscale) {
+                const int iw=std::clamp(static_cast<int>(std::ceil(w)),1,14400);
+                const int ih=std::clamp(static_cast<int>(std::ceil(h)),1,14400);
+                struct SurfaceDestroy {void operator()(cairo_surface_t* p) const noexcept {if(p)cairo_surface_destroy(p);}};
+                struct ContextDestroy {void operator()(cairo_t* p) const noexcept {if(p)cairo_destroy(p);}};
+                std::unique_ptr<cairo_surface_t,SurfaceDestroy> image(cairo_image_surface_create(CAIRO_FORMAT_ARGB32,iw,ih));
+                if(cairo_surface_status(image.get())==CAIRO_STATUS_SUCCESS) {
+                    std::unique_ptr<cairo_t,ContextDestroy> image_cr(cairo_create(image.get()));
+                    cairo_set_source_rgb(image_cr.get(),1,1,1);cairo_paint(image_cr.get());
+                    poppler_page_render_for_printing(page.get(),image_cr.get());
+                    cairo_surface_flush(image.get());
+                    auto* pixels=cairo_image_surface_get_data(image.get());
+                    const int stride=cairo_image_surface_get_stride(image.get());
+                    for(int yy=0;yy<ih;yy++) {
+                        auto* row=reinterpret_cast<uint32_t*>(pixels+yy*stride);
+                        for(int xx=0;xx<iw;xx++) {
+                            const uint32_t px=row[xx];
+                            const unsigned a=(px>>24)&255,r=(px>>16)&255,g=(px>>8)&255,b=px&255;
+                            const unsigned gray=(54*r+183*g+19*b+128)/256;
+                            row[xx]=(a<<24)|(gray<<16)|(gray<<8)|gray;
+                        }
+                    }
+                    cairo_surface_mark_dirty(image.get());
+                    cairo_set_source_surface(cr,image.get(),0,0);cairo_paint(cr);
+                }
+            } else poppler_page_render_for_printing(page.get(),cr);
             cairo_restore(cr);
         }
     }
@@ -406,7 +432,8 @@ static bool print_selected(State* s,const std::vector<lps::Side>& sides,lps::Pri
         const auto [w,h]=output_size(s);
         lps::export_pdf(s->path,target.string(),sides,w,h,s->render_options);
         const int id=lps::print_pdf(target.string(),printer_name,
-            gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(s->copies)),binding);
+            gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(s->copies)),binding,
+            static_cast<int>(gtk_drop_down_get_selected(GTK_DROP_DOWN(s->quality_control))));
         status(s,message+" (CUPS job "+std::to_string(id)+")");
         return true;
     }catch(const std::exception& e){status(s,e.what());return false;}
@@ -440,7 +467,8 @@ static void manual_fronts_clicked(GtkButton*,gpointer data) {
         const auto [w,h]=output_size(s);
         lps::export_pdf(s->path,target.string(),selected,w,h,s->render_options);
         const int id=lps::print_pdf(target.string(),printer_name,
-            gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(s->copies)),lps::PrintSides::Simplex);
+            gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(s->copies)),lps::PrintSides::Simplex,
+            static_cast<int>(gtk_drop_down_get_selected(GTK_DROP_DOWN(s->quality_control))));
         s->manual_fronts_sent=true;
         gtk_widget_set_sensitive(s->manual_backs,TRUE);
         status(s,"Fronts submitted (job "+std::to_string(id)+"). Wait for printing to finish, reload paper, then click Print backs.");

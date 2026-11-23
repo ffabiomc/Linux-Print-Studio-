@@ -82,7 +82,11 @@ void export_pdf(const std::string& input,const std::string& output,const std::ve
     cairo_t* cr=cairo_create(surface);
     for(const auto& side:sides) {
         if(side.empty()) continue;
-        size_t count=side.size(), cols=static_cast<size_t>(std::ceil(std::sqrt(static_cast<double>(count)))), rows=(count+cols-1)/cols;
+        size_t count=side.size();
+        size_t cols=(count==2 ? (pw>=ph ? 2 : 1) :
+                     count==6 ? (pw>=ph ? 3 : 2) :
+                     static_cast<size_t>(std::ceil(std::sqrt(static_cast<double>(count)))));
+        size_t rows=(count+cols-1)/cols;
         double cellw=pw/cols, cellh=ph/rows;
         cairo_set_source_rgb(cr,1,1,1);cairo_paint(cr);
         for(size_t j=0;j<count;j++) {

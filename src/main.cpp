@@ -28,7 +28,7 @@ using OwnedString=std::unique_ptr<gchar,GFree>;
 }
 struct State {
     GtkWidget *window=nullptr,*preview=nullptr,*status=nullptr,*page_label=nullptr,*prev_button=nullptr,*next_button=nullptr,*print_button=nullptr,*export_button=nullptr,*document_info=nullptr,*zoom=nullptr,*scroller=nullptr;
-    GtkWidget *printer_details=nullptr,*page_mode=nullptr,*page_range=nullptr,*layout=nullptr,*orientation=nullptr,*paper=nullptr,*copies=nullptr,*duplex=nullptr,*printer=nullptr,*reverse_backs=nullptr,*manual_fronts=nullptr,*manual_backs=nullptr,*preview_pass=nullptr,*duplex_hint=nullptr,*calibration_front=nullptr,*calibration_back=nullptr;
+    GtkWidget *scale_control=nullptr,*margin_control=nullptr,*center_control=nullptr,*color_control=nullptr,*quality_control=nullptr,*printer_details=nullptr,*page_mode=nullptr,*page_range=nullptr,*layout=nullptr,*orientation=nullptr,*paper=nullptr,*copies=nullptr,*duplex=nullptr,*printer=nullptr,*reverse_backs=nullptr,*manual_fronts=nullptr,*manual_backs=nullptr,*preview_pass=nullptr,*duplex_hint=nullptr,*calibration_front=nullptr,*calibration_back=nullptr;
     ObjectPtr<PopplerDocument> doc;
     std::string path;
     std::vector<std::string> printer_names;
@@ -39,11 +39,13 @@ struct State {
     int last_view_width=0,last_view_height=0;
     bool manual_fronts_sent=false;
     bool page_selection_valid=true;
+    lps::RenderOptions render_options;
     std::vector<size_t> selected_page_numbers;
 
 };
 static void status(State* s,const std::string& message) { gtk_label_set_text(GTK_LABEL(s->status),message.c_str()); }
 static std::vector<lps::Side> layout_sides(State* s);
+static void advanced_changed(GObject*,GParamSpec*,gpointer);
 static std::pair<double,double> output_size(State* s);
 static std::vector<lps::Side> visible_sides(State* s) {
     const auto all=layout_sides(s);
@@ -145,7 +147,9 @@ static void preview_draw(GtkDrawingArea*,cairo_t* cr,int width,int height,gpoint
                        count==6 ? (pw>=ph ? 3 : 2) :
                        static_cast<size_t>(std::ceil(std::sqrt(static_cast<double>(count)))));
     const size_t rows=(count+cols-1)/cols;
-    const double cellw=pw/static_cast<double>(cols), cellh=ph/static_cast<double>(rows);
+    const double margin=s->render_options.margin_mm*72.0/25.4;
+    const double cellw=(pw-2*margin)/static_cast<double>(cols);
+    const double cellh=(ph-2*margin)/static_cast<double>(rows);
     for(size_t j=0;j<count;j++) {
         const auto& selected_page=side[j];
         if(!selected_page.has_value() || selected_page.value()==0) continue;
@@ -156,13 +160,14 @@ static void preview_draw(GtkDrawingArea*,cairo_t* cr,int width,int height,gpoint
         double w=0,h=0;
         poppler_page_get_size(page.get(),&w,&h);
         if(std::isfinite(w) && std::isfinite(h) && w>0 && h>0) {
-            const double scale=std::min(cellw/w,cellh/h);
+            const double scale=std::min(cellw/w,cellh/h)*s->render_options.scale_percent/100.0;
             const size_t row=j/cols;
-            const double cx=static_cast<double>(j%cols)*cellw, cy=static_cast<double>(row)*cellh;
+            const double cx=margin+static_cast<double>(j%cols)*cellw, cy=margin+static_cast<double>(row)*cellh;
             cairo_save(cr);
             cairo_rectangle(cr,cx,cy,cellw,cellh);
             cairo_clip(cr);
-            cairo_translate(cr,cx+(cellw-w*scale)/2,cy+(cellh-h*scale)/2);
+            cairo_translate(cr,cx+(s->render_options.centered?(cellw-w*scale)/2:0),
+                cy+(s->render_options.centered?(cellh-h*scale)/2:0));
             cairo_scale(cr,scale,scale);
             poppler_page_render_for_printing(page.get(),cr);
             cairo_restore(cr);
@@ -273,6 +278,16 @@ static void page_selection_changed(GObject*,GParamSpec*,gpointer data) {
 static void page_range_changed(GtkEditable*,gpointer data) {
     page_selection_changed(nullptr,nullptr,data);
 }
+static void advanced_changed(GObject*,GParamSpec*,gpointer data) {
+    auto* s=static_cast<State*>(data);
+    s->render_options.scale_percent=gtk_spin_button_get_value(GTK_SPIN_BUTTON(s->scale_control));
+    s->render_options.margin_mm=gtk_spin_button_get_value(GTK_SPIN_BUTTON(s->margin_control));
+    s->render_options.centered=gtk_check_button_get_active(GTK_CHECK_BUTTON(s->center_control));
+    s->render_options.grayscale=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->color_control))==1;
+    if(s->doc) update_page(s);
+}
+static void advanced_spin_changed(GtkSpinButton*,gpointer data) {advanced_changed(nullptr,nullptr,data);}
+static void advanced_toggle_changed(GtkCheckButton*,gpointer data) {advanced_changed(nullptr,nullptr,data);}
 static void layout_changed(GObject*,GParamSpec*,gpointer data) {
     auto* s=static_cast<State*>(data);
     s->page=0;
@@ -372,7 +387,7 @@ static void export_clicked(GtkButton*,gpointer data) {
         auto target=std::filesystem::path(s->path);
         target.replace_filename(target.stem().string()+"-print-studio.pdf");
         auto [w,h]=output_size(s);
-        lps::export_pdf(s->path,target.string(),layout_sides(s),w,h);
+        lps::export_pdf(s->path,target.string(),layout_sides(s),w,h,s->render_options);
         status(s,"Exported: "+target.string());
     }catch(const std::exception& e){status(s,e.what());}
 }
@@ -389,7 +404,7 @@ static bool print_selected(State* s,const std::vector<lps::Side>& sides,lps::Pri
         const auto target=std::filesystem::temp_directory_path()/
             ("linux-print-studio-"+std::to_string(g_get_real_time())+".pdf");
         const auto [w,h]=output_size(s);
-        lps::export_pdf(s->path,target.string(),sides,w,h);
+        lps::export_pdf(s->path,target.string(),sides,w,h,s->render_options);
         const int id=lps::print_pdf(target.string(),printer_name,
             gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(s->copies)),binding);
         status(s,message+" (CUPS job "+std::to_string(id)+")");
@@ -423,7 +438,7 @@ static void manual_fronts_clicked(GtkButton*,gpointer data) {
         const auto target=std::filesystem::temp_directory_path()/
             ("linux-print-studio-fronts-"+std::to_string(g_get_real_time())+".pdf");
         const auto [w,h]=output_size(s);
-        lps::export_pdf(s->path,target.string(),selected,w,h);
+        lps::export_pdf(s->path,target.string(),selected,w,h,s->render_options);
         const int id=lps::print_pdf(target.string(),printer_name,
             gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(s->copies)),lps::PrintSides::Simplex);
         s->manual_fronts_sent=true;
@@ -560,11 +575,14 @@ static void activate(GApplication* application,gpointer) {
     auto* body=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,0);
     gtk_widget_set_vexpand(body,TRUE);
     gtk_box_append(GTK_BOX(outer),body);
+    auto* sidebar_scroll=gtk_scrolled_window_new();
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(sidebar_scroll),GTK_POLICY_NEVER,GTK_POLICY_AUTOMATIC);
+    gtk_widget_set_size_request(sidebar_scroll,320,-1);
+    gtk_box_append(GTK_BOX(body),sidebar_scroll);
     auto* side=gtk_box_new(GTK_ORIENTATION_VERTICAL,12);
-    gtk_widget_set_size_request(side,285,-1);
     gtk_widget_set_margin_start(side,18);gtk_widget_set_margin_end(side,18);
-    gtk_widget_set_margin_top(side,18);
-    gtk_box_append(GTK_BOX(body),side);
+    gtk_widget_set_margin_top(side,18);gtk_widget_set_margin_bottom(side,18);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(sidebar_scroll),side);
     gtk_box_append(GTK_BOX(side),label(tr("Page layout")));
     const char* layouts[]={tr("Normal"),tr("Booklet"),tr("2 pages / sheet"),tr("4 pages / sheet"),tr("6 pages / sheet"),tr("9 pages / sheet"),tr("16 pages / sheet"),nullptr};
     s->layout=gtk_drop_down_new_from_strings(layouts);
@@ -590,6 +608,32 @@ static void activate(GApplication* application,gpointer) {
     g_signal_connect(s->layout,"notify::selected",G_CALLBACK(layout_changed),s);
     g_signal_connect(s->orientation,"notify::selected",G_CALLBACK(layout_changed),s);
     g_signal_connect(s->paper,"notify::selected",G_CALLBACK(layout_changed),s);
+    auto* advanced=gtk_expander_new(tr("Advanced settings"));
+    auto* advanced_box=gtk_box_new(GTK_ORIENTATION_VERTICAL,8);
+    gtk_expander_set_child(GTK_EXPANDER(advanced),advanced_box);
+    gtk_box_append(GTK_BOX(side),advanced);
+    gtk_box_append(GTK_BOX(advanced_box),label(tr("Scale (%)")));
+    s->scale_control=gtk_spin_button_new_with_range(10,200,5);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(s->scale_control),100);
+    gtk_box_append(GTK_BOX(advanced_box),s->scale_control);
+    gtk_box_append(GTK_BOX(advanced_box),label(tr("Margins (mm)")));
+    s->margin_control=gtk_spin_button_new_with_range(0,50,1);
+    gtk_box_append(GTK_BOX(advanced_box),s->margin_control);
+    s->center_control=gtk_check_button_new_with_label(tr("Center content"));
+    gtk_check_button_set_active(GTK_CHECK_BUTTON(s->center_control),TRUE);
+    gtk_box_append(GTK_BOX(advanced_box),s->center_control);
+    gtk_box_append(GTK_BOX(advanced_box),label(tr("Color mode")));
+    const char* color_modes[]={tr("Color"),tr("Grayscale"),nullptr};
+    s->color_control=gtk_drop_down_new_from_strings(color_modes);
+    gtk_box_append(GTK_BOX(advanced_box),s->color_control);
+    gtk_box_append(GTK_BOX(advanced_box),label(tr("Print quality")));
+    const char* quality_modes[]={tr("Printer default"),tr("Draft"),tr("Normal quality"),tr("High quality"),nullptr};
+    s->quality_control=gtk_drop_down_new_from_strings(quality_modes);
+    gtk_box_append(GTK_BOX(advanced_box),s->quality_control);
+    g_signal_connect(s->scale_control,"value-changed",G_CALLBACK(advanced_spin_changed),s);
+    g_signal_connect(s->margin_control,"value-changed",G_CALLBACK(advanced_spin_changed),s);
+    g_signal_connect(s->center_control,"toggled",G_CALLBACK(advanced_toggle_changed),s);
+    g_signal_connect(s->color_control,"notify::selected",G_CALLBACK(advanced_changed),s);
     gtk_box_append(GTK_BOX(side),label(tr("Printer")));
     const char* empty_printers[]={nullptr};
     s->printer=gtk_drop_down_new_from_strings(empty_printers);

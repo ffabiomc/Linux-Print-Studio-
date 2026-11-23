@@ -135,7 +135,7 @@ static void open_clicked(GtkButton*,gpointer data) {
 static void page_back(GtkButton*,gpointer data){auto* s=static_cast<State*>(data);s->page--;update_page(s);}
 static void page_next(GtkButton*,gpointer data){auto* s=static_cast<State*>(data);s->page++;update_page(s);}
 static std::vector<lps::Side> layout_sides(State* s) {
-    size_t pages=static_cast<size_t>(poppler_document_get_n_pages(s->doc));
+    size_t pages=static_cast<size_t>(poppler_document_get_n_pages(s->doc.get()));
     unsigned selected=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->layout));
     if(selected==1)return lps::booklet(pages);
     if(selected>=2)return lps::n_up(pages,selected==2?2:selected==3?4:selected==4?6:selected==5?9:16);

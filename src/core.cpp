@@ -20,12 +20,12 @@ struct Options { cups_option_t* data=nullptr; int count=0; ~Options(){cupsFreeOp
 }
 
 std::vector<Side> n_up(size_t pages, size_t per_sheet) {
-    if (!pages || (per_sheet!=1 && per_sheet!=2 && per_sheet!=4 && per_sheet!=6 && per_sheet!=9 && per_sheet!=16)) throw std::invalid_argument("Invalid N-up layout");
+    if (!pages || pages>100000 || (per_sheet!=1 && per_sheet!=2 && per_sheet!=4 && per_sheet!=6 && per_sheet!=9 && per_sheet!=16)) throw std::invalid_argument("Invalid N-up layout");
     std::vector<Side> out;
-    for(size_t first=1;first<=pages;) {
+    for(size_t first=0;first<pages;first+=per_sheet) {
         Side side(per_sheet);
-        for(size_t slot=0;slot<per_sheet && first<=pages;slot++,first++) {
-            side[slot]=first;
+        for(size_t slot=0;slot<per_sheet && first+slot<pages;slot++) {
+            side[slot]=first+slot+1;
         }
         out.push_back(std::move(side));
     }

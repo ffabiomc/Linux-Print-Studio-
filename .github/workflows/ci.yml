@@ -21,8 +21,8 @@ jobs:
           cmake --install build --prefix staging/usr
           mkdir -p pkg/DEBIAN pkg/usr
           cp -a staging/usr/. pkg/usr/
-          printf 'Package: linux-print-studio-cpp\nVersion: 1.0.0\nArchitecture: amd64\nMaintainer: Linux Print Studio\nDepends: libgtk-4-1, libadwaita-1-0, libpoppler-glib8, libcups2, libcairo2\nDescription: Linux Print Studio GTK edition\n' > pkg/DEBIAN/control
-          dpkg-deb --build pkg linux-print-studio-cpp_1.0.0_amd64.deb
+          printf 'Package: linux-print-studio-cpp\nVersion: 1.0.1\nArchitecture: amd64\nMaintainer: Linux Print Studio\nDepends: libgtk-4-1, libadwaita-1-0, libpoppler-glib8, libcups2, libcairo2\nDescription: Linux Print Studio GTK edition\n' > pkg/DEBIAN/control
+          dpkg-deb --build pkg linux-print-studio-cpp_1.0.1_amd64.deb
       - uses: actions/upload-artifact@v4
         with:
           name: linux-print-studio-cpp-deb
@@ -49,7 +49,7 @@ jobs:
           mkdir -p rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
           cat > rpmbuild/SPECS/linux-print-studio-cpp.spec <<'SPEC'
           Name: linux-print-studio-cpp
-          Version: 1.0.0
+          Version: 1.0.1
           Release: 1%{?dist}
           Summary: Linux Print Studio GTK edition
           License: MIT

@@ -28,7 +28,7 @@ using OwnedString=std::unique_ptr<gchar,GFree>;
 }
 struct State {
     GtkWidget *window=nullptr,*preview=nullptr,*status=nullptr,*page_label=nullptr,*prev_button=nullptr,*next_button=nullptr,*print_button=nullptr,*export_button=nullptr,*document_info=nullptr,*zoom=nullptr,*scroller=nullptr;
-    GtkWidget *printer_details=nullptr,*layout=nullptr,*orientation=nullptr,*paper=nullptr,*copies=nullptr,*duplex=nullptr,*printer=nullptr,*reverse_backs=nullptr,*manual_fronts=nullptr,*manual_backs=nullptr,*preview_pass=nullptr,*duplex_hint=nullptr,*calibration_front=nullptr,*calibration_back=nullptr;
+    GtkWidget *printer_details=nullptr,*page_mode=nullptr,*page_range=nullptr,*layout=nullptr,*orientation=nullptr,*paper=nullptr,*copies=nullptr,*duplex=nullptr,*printer=nullptr,*reverse_backs=nullptr,*manual_fronts=nullptr,*manual_backs=nullptr,*preview_pass=nullptr,*duplex_hint=nullptr,*calibration_front=nullptr,*calibration_back=nullptr;
     ObjectPtr<PopplerDocument> doc;
     std::string path;
     std::vector<std::string> printer_names;
@@ -38,6 +38,8 @@ struct State {
     bool fit_width=false;
     int last_view_width=0,last_view_height=0;
     bool manual_fronts_sent=false;
+    bool page_selection_valid=true;
+    std::vector<size_t> selected_page_numbers;
 
 };
 static void status(State* s,const std::string& message) { gtk_label_set_text(GTK_LABEL(s->status),message.c_str()); }
@@ -191,8 +193,8 @@ static void update_page(State* s) {
     gtk_label_set_text(GTK_LABEL(s->page_label),caption.c_str());
     if(s->prev_button) gtk_widget_set_sensitive(s->prev_button,s->page>0);
     if(s->next_button) gtk_widget_set_sensitive(s->next_button,s->page+1<count);
-    if(s->export_button) gtk_widget_set_sensitive(s->export_button,TRUE);
-    if(s->print_button) gtk_widget_set_sensitive(s->print_button,!s->printer_names.empty());
+    if(s->export_button) gtk_widget_set_sensitive(s->export_button,s->page_selection_valid);
+    if(s->print_button) gtk_widget_set_sensitive(s->print_button,s->page_selection_valid && !s->printer_names.empty());
     if(s->document_info) {
         const int pages=poppler_document_get_n_pages(s->doc.get());
         const auto [w,h]=output_size(s);
@@ -241,6 +243,36 @@ static void refresh_printers(State* s) {
 static void refresh_printers_clicked(GtkButton*,gpointer data) {
     refresh_printers(static_cast<State*>(data));
 }
+static void page_selection_changed(GObject*,GParamSpec*,gpointer data) {
+    auto* s=static_cast<State*>(data);
+    const unsigned mode=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->page_mode));
+    gtk_widget_set_visible(s->page_range,mode==3);
+    if(!s->doc) return;
+    const size_t total=static_cast<size_t>(poppler_document_get_n_pages(s->doc.get()));
+    std::vector<size_t> pages;
+    try {
+        if(mode==3) pages=lps::parse_page_range(gtk_editable_get_text(GTK_EDITABLE(s->page_range)),total);
+        else for(size_t n=1;n<=total;n++) if(mode==0 || (mode==1 && n%2==0) || (mode==2 && n%2==1)) pages.push_back(n);
+        if(pages.empty()) throw std::invalid_argument("No pages match the selection");
+    } catch(const std::exception&) {
+        s->page_selection_valid=false;
+        gtk_widget_add_css_class(s->page_range,"error");
+        status(s,tr("Invalid page range; use e.g. 1-5, 8, 12-15"));
+        if(s->print_button) gtk_widget_set_sensitive(s->print_button,FALSE);
+        if(s->export_button) gtk_widget_set_sensitive(s->export_button,FALSE);
+        return;
+    }
+    s->page_selection_valid=true;
+    gtk_widget_remove_css_class(s->page_range,"error");
+    s->selected_page_numbers=std::move(pages);
+    s->page=0;
+    s->manual_fronts_sent=false;
+    if(s->manual_backs) gtk_widget_set_sensitive(s->manual_backs,FALSE);
+    update_page(s);
+}
+static void page_range_changed(GtkEditable*,gpointer data) {
+    page_selection_changed(nullptr,nullptr,data);
+}
 static void layout_changed(GObject*,GParamSpec*,gpointer data) {
     auto* s=static_cast<State*>(data);
     s->page=0;
@@ -258,7 +290,7 @@ static void load_pdf(State* s,const char* path) {
     s->manual_fronts_sent=false;
     if(s->manual_backs) gtk_widget_set_sensitive(s->manual_backs,FALSE);
     status(s,std::filesystem::path(path).filename().string());
-    update_page(s);
+    page_selection_changed(nullptr,nullptr,s);
 }
 static void chooser_response(GtkNativeDialog* dialog,int response,gpointer) {
     // The dialog owns a reference to the window until the response callback ends.
@@ -311,11 +343,12 @@ static void zoom_changed(GtkDropDown* dropdown,GParamSpec*,gpointer data) {
 static void page_back(GtkButton*,gpointer data){auto* s=static_cast<State*>(data);s->page--;update_page(s);}
 static void page_next(GtkButton*,gpointer data){auto* s=static_cast<State*>(data);s->page++;update_page(s);}
 static std::vector<lps::Side> layout_sides(State* s) {
-    size_t pages=static_cast<size_t>(poppler_document_get_n_pages(s->doc.get()));
+    const size_t pages=s->selected_page_numbers.empty()?
+        static_cast<size_t>(poppler_document_get_n_pages(s->doc.get())):s->selected_page_numbers.size();
     unsigned selected=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->layout));
-    if(selected==1)return lps::booklet(pages);
-    if(selected>=2)return lps::n_up(pages,selected==2?2:selected==3?4:selected==4?6:selected==5?9:16);
-    return lps::n_up(pages,1);
+    const auto layout=selected==1?lps::booklet(pages):
+        lps::n_up(pages,selected>=2?(selected==2?2:selected==3?4:selected==4?6:selected==5?9:16):1);
+    return s->selected_page_numbers.empty()?layout:lps::remap_pages(layout,s->selected_page_numbers);
 }
 static std::pair<double,double> paper_size(State* s) {
     switch(gtk_drop_down_get_selected(GTK_DROP_DOWN(s->paper))) {
@@ -334,6 +367,7 @@ static std::pair<double,double> output_size(State* s) {
 static void export_clicked(GtkButton*,gpointer data) {
     auto* s=static_cast<State*>(data);
     if(!s->doc){status(s,tr("Open a PDF first"));return;}
+    if(!s->page_selection_valid) {status(s,tr("Invalid page range"));return;}
     try {
         auto target=std::filesystem::path(s->path);
         target.replace_filename(target.stem().string()+"-print-studio.pdf");
@@ -365,6 +399,7 @@ static bool print_selected(State* s,const std::vector<lps::Side>& sides,lps::Pri
 static void print_clicked(GtkButton*,gpointer data) {
     auto* s=static_cast<State*>(data);
     if(!s->doc){status(s,tr("Open a PDF first"));return;}
+    if(!s->page_selection_valid) {status(s,tr("Invalid page range"));return;}
     const auto selected=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->duplex));
     if(selected==3) {
         status(s,tr("Manual duplex: click Print fronts first, then reload paper and click Print backs"));
@@ -534,6 +569,16 @@ static void activate(GApplication* application,gpointer) {
     const char* layouts[]={tr("Normal"),tr("Booklet"),tr("2 pages / sheet"),tr("4 pages / sheet"),tr("6 pages / sheet"),tr("9 pages / sheet"),tr("16 pages / sheet"),nullptr};
     s->layout=gtk_drop_down_new_from_strings(layouts);
     gtk_box_append(GTK_BOX(side),s->layout);
+    gtk_box_append(GTK_BOX(side),label(tr("Pages to print")));
+    const char* page_modes[]={tr("All pages"),tr("Even pages"),tr("Odd pages"),tr("Custom range"),nullptr};
+    s->page_mode=gtk_drop_down_new_from_strings(page_modes);
+    gtk_box_append(GTK_BOX(side),s->page_mode);
+    s->page_range=gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(s->page_range),"1-5, 8, 12-15");
+    gtk_widget_set_visible(s->page_range,FALSE);
+    gtk_box_append(GTK_BOX(side),s->page_range);
+    g_signal_connect(s->page_mode,"notify::selected",G_CALLBACK(page_selection_changed),s);
+    g_signal_connect(s->page_range,"changed",G_CALLBACK(page_range_changed),s);
     gtk_box_append(GTK_BOX(side),label(tr("Orientation")));
     const char* orientations[]={tr("Automatic"),tr("Portrait"),tr("Landscape"),nullptr};
     s->orientation=gtk_drop_down_new_from_strings(orientations);

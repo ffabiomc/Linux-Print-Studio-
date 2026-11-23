@@ -346,7 +346,7 @@ static void printer_changed(GObject*,GParamSpec*,gpointer data) {
     if(s->print_button) gtk_widget_set_sensitive(s->print_button,valid && static_cast<bool>(s->doc) && s->page_selection_valid);
     if(s->manual_fronts) gtk_widget_set_sensitive(s->manual_fronts,valid && static_cast<bool>(s->doc));
     if(s->calibration_front) gtk_widget_set_sensitive(s->calibration_front,valid);
-    if(s->wizard_step) refresh_manual_wizard(s);
+    if(s->wizard_step) {reset_manual_wizard(s);load_duplex_profile(s);}
 }
 static void refresh_printers(State* s) {
     const unsigned old_index=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->printer));
@@ -409,6 +409,7 @@ static void advanced_changed(GObject*,GParamSpec*,gpointer data) {
     s->render_options.margin_mm=gtk_spin_button_get_value(GTK_SPIN_BUTTON(s->margin_control));
     s->render_options.centered=gtk_check_button_get_active(GTK_CHECK_BUTTON(s->center_control));
     s->render_options.grayscale=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->color_control))==1;
+    if(s->manual_fronts_sent) reset_manual_wizard(s);
     if(s->doc) update_page(s);
 }
 static void advanced_spin_changed(GtkSpinButton*,gpointer data) {advanced_changed(nullptr,nullptr,data);}
@@ -688,8 +689,7 @@ static void preview_pass_changed(GObject*,GParamSpec*,gpointer data) {
 }
 static void reverse_backs_changed(GtkCheckButton*,gpointer data) {
     auto* s=static_cast<State*>(data);
-    s->manual_fronts_sent=false;
-    gtk_widget_set_sensitive(s->manual_backs,FALSE);
+    reset_manual_wizard(s);
     s->page=0;
     update_page(s);
 }

@@ -177,9 +177,9 @@ static bool selected_printer(State* s,std::string& name) {
     name=s->printer_names[selected];
     return true;
 }
-static void print_selected(State* s,const std::vector<lps::Side>& sides,lps::PrintSides binding,const std::string& message) {
+static bool print_selected(State* s,const std::vector<lps::Side>& sides,lps::PrintSides binding,const std::string& message) {
     std::string printer_name;
-    if(!selected_printer(s,printer_name)) return;
+    if(!selected_printer(s,printer_name)) return false;
     try {
         const auto target=std::filesystem::temp_directory_path()/
             ("linux-print-studio-"+std::to_string(g_get_real_time())+".pdf");
@@ -188,7 +188,8 @@ static void print_selected(State* s,const std::vector<lps::Side>& sides,lps::Pri
         const int id=lps::print_pdf(target.string(),printer_name,
             gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(s->copies)),binding);
         status(s,message+" (CUPS job "+std::to_string(id)+")");
-    }catch(const std::exception& e){status(s,e.what());}
+        return true;
+    }catch(const std::exception& e){status(s,e.what());return false;}
 }
 static void print_clicked(GtkButton*,gpointer data) {
     auto* s=static_cast<State*>(data);
@@ -234,9 +235,10 @@ static void manual_backs_clicked(GtkButton*,gpointer data) {
             gtk_check_button_get_active(GTK_CHECK_BUTTON(s->reverse_backs)));
         if(plan.backs.empty()){status(s,"No back sides required");return;}
         const auto selected=lps::select_sides(sides,plan.backs);
-        print_selected(s,selected,lps::PrintSides::Simplex,"Back sides submitted; check paper orientation");
-        s->manual_fronts_sent=false;
-        gtk_widget_set_sensitive(s->manual_backs,FALSE);
+        if(print_selected(s,selected,lps::PrintSides::Simplex,"Back sides submitted; check paper orientation")) {
+            s->manual_fronts_sent=false;
+            gtk_widget_set_sensitive(s->manual_backs,FALSE);
+        }
     }catch(const std::exception& e){status(s,e.what());}
 }
 static void duplex_changed(GObject*,GParamSpec*,gpointer data) {

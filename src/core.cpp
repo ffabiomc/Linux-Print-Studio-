@@ -97,22 +97,33 @@ void export_pdf(const std::string& input,const std::string& output,const std::ve
                      count==6 ? (pw>=ph ? 3 : 2) :
                      static_cast<size_t>(std::ceil(std::sqrt(static_cast<double>(count)))));
         size_t rows=(count+cols-1)/cols;
-        double cellw=pw/cols, cellh=ph/rows;
-        cairo_set_source_rgb(cr.get(),1,1,1);cairo_paint(cr.get());
+        const double cellw=pw/static_cast<double>(cols);
+        const double cellh=ph/static_cast<double>(rows);
+        cairo_set_source_rgb(cr.get(),1,1,1);
+        cairo_paint(cr.get());
+        const int document_pages=poppler_document_get_n_pages(d.document.get());
         for(size_t j=0;j<count;j++) {
-            if(!side[j]) continue;
-            if(*side[j]<1 || *side[j]>static_cast<size_t>(poppler_document_get_n_pages(d.document.get()))) continue;
-            GPtr<PopplerPage> page(poppler_document_get_page(d.document.get(),static_cast<int>(*side[j]-1)));
+            const auto& page_number=side[j];
+            if(!page_number.has_value()) continue;
+            const size_t number=page_number.value();
+            if(number<1 || number>static_cast<size_t>(document_pages)) continue;
+            GPtr<PopplerPage> page(poppler_document_get_page(d.document.get(),static_cast<int>(number-1)));
             if(!page) continue;
-            double w=0,h=0;poppler_page_get_size(page.get(),&w,&h);
-            if(w>0 && h>0) {
-                double scale=std::min(cellw/w,cellh/h);
-                double x=(j%cols)*cellw+(cellw-w*scale)/2;
-                double y=(j/cols)*cellh+(cellh-h*scale)/2;
-                cairo_save(cr.get());cairo_rectangle(cr.get(),(j%cols)*cellw,(j/cols)*cellh,cellw,cellh);cairo_clip(cr.get());
-                cairo_translate(cr.get(),x,y);cairo_scale(cr.get(),scale,scale);
-                poppler_page_render_for_printing(page.get(),cr.get());cairo_restore(cr.get());
-            }
+            double w=0,h=0;
+            poppler_page_get_size(page.get(),&w,&h);
+            if(!std::isfinite(w) || !std::isfinite(h) || w<=0 || h<=0) continue;
+            const double scale=std::min(cellw/w,cellh/h);
+            const double cellx=static_cast<double>(j%cols)*cellw;
+            const double celly=static_cast<double>(j/cols)*cellh;
+            const double x=cellx+(cellw-w*scale)/2.0;
+            const double y=celly+(cellh-h*scale)/2.0;
+            cairo_save(cr.get());
+            cairo_rectangle(cr.get(),cellx,celly,cellw,cellh);
+            cairo_clip(cr.get());
+            cairo_translate(cr.get(),x,y);
+            cairo_scale(cr.get(),scale,scale);
+            poppler_page_render_for_printing(page.get(),cr.get());
+            cairo_restore(cr.get());
         }
         cairo_show_page(cr.get());
     }

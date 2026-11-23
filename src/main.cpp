@@ -121,8 +121,8 @@ static void update_page(State* s) {
         gtk_drop_down_get_selected(GTK_DROP_DOWN(s->preview_pass)):0;
     const bool manual=s->duplex &&
         gtk_drop_down_get_selected(GTK_DROP_DOWN(s->duplex))==3;
-    const std::string prefix=manual && pass==1?"Front":manual && pass==2?"Back":"Sheet";
-    const std::string caption=count==0?"No sides in this pass":
+    const std::string prefix=manual && pass==1?tr("Front"):manual && pass==2?tr("Back"):tr("Sheet");
+    const std::string caption=count==0?tr("No sides in this pass"):
         prefix+" "+std::to_string(s->page+1)+" / "+std::to_string(count);
     gtk_label_set_text(GTK_LABEL(s->page_label),caption.c_str());
     if(manual) refresh_duplex_hint(s);
@@ -138,9 +138,9 @@ static void layout_changed(GObject*,GParamSpec*,gpointer data) {
 static void load_pdf(State* s,const char* path) {
     GError* err=nullptr;
     OwnedString uri(g_filename_to_uri(path,nullptr,&err));
-    if(!uri) {status(s,err?err->message:"Invalid path");g_clear_error(&err);return;}
+    if(!uri) {status(s,err?err->message:tr("Invalid path"));g_clear_error(&err);return;}
     ObjectPtr<PopplerDocument> doc(poppler_document_new_from_file(uri.get(),nullptr,&err));
-    if(!doc) {status(s,err?err->message:"Could not open PDF");g_clear_error(&err);return;}
+    if(!doc) {status(s,err?err->message:tr("Could not open PDF"));g_clear_error(&err);return;}
     s->doc=std::move(doc);s->path=path;s->page=0;
     s->manual_fronts_sent=false;
     if(s->manual_backs) gtk_widget_set_sensitive(s->manual_backs,FALSE);
@@ -163,12 +163,12 @@ static void chooser_response(GtkNativeDialog* dialog,int response,gpointer) {
 }
 static void open_clicked(GtkButton*,gpointer data) {
     auto* s=static_cast<State*>(data);
-    auto* chooser=gtk_file_chooser_native_new("Open PDF",GTK_WINDOW(s->window),GTK_FILE_CHOOSER_ACTION_OPEN,"Open","Cancel");
+    auto* chooser=gtk_file_chooser_native_new(tr("Open PDF"),GTK_WINDOW(s->window),GTK_FILE_CHOOSER_ACTION_OPEN,tr("Open"),tr("Cancel"));
     // Explicitly retain the window for asynchronous file-chooser callbacks.
     g_object_set_data_full(G_OBJECT(chooser),"owner-window",g_object_ref(s->window),
                            [](gpointer owner){g_object_unref(owner);});
     GtkFileFilter* filter=gtk_file_filter_new();
-    gtk_file_filter_set_name(filter,"PDF documents");
+    gtk_file_filter_set_name(filter,tr("PDF documents"));
     gtk_file_filter_add_mime_type(filter,"application/pdf");
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(chooser),filter);
     g_signal_connect(chooser,"response",G_CALLBACK(chooser_response),nullptr);
@@ -199,7 +199,7 @@ static std::pair<double,double> output_size(State* s) {
 }
 static void export_clicked(GtkButton*,gpointer data) {
     auto* s=static_cast<State*>(data);
-    if(!s->doc){status(s,"Open a PDF first");return;}
+    if(!s->doc){status(s,tr("Open a PDF first"));return;}
     try {
         auto target=std::filesystem::path(s->path);
         target.replace_filename(target.stem().string()+"-print-studio.pdf");
@@ -210,7 +210,7 @@ static void export_clicked(GtkButton*,gpointer data) {
 }
 static bool selected_printer(State* s,std::string& name) {
     const auto selected=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->printer));
-    if(selected>=s->printer_names.size()) {status(s,"Select a printer");return false;}
+    if(selected>=s->printer_names.size()) {status(s,tr("Select a printer"));return false;}
     name=s->printer_names[selected];
     return true;
 }
@@ -230,19 +230,19 @@ static bool print_selected(State* s,const std::vector<lps::Side>& sides,lps::Pri
 }
 static void print_clicked(GtkButton*,gpointer data) {
     auto* s=static_cast<State*>(data);
-    if(!s->doc){status(s,"Open a PDF first");return;}
+    if(!s->doc){status(s,tr("Open a PDF first"));return;}
     const auto selected=gtk_drop_down_get_selected(GTK_DROP_DOWN(s->duplex));
     if(selected==3) {
-        status(s,"Manual duplex: click Print fronts first, then reload paper and click Print backs");
+        status(s,tr("Manual duplex: click Print fronts first, then reload paper and click Print backs"));
         return;
     }
     const auto binding=selected==1?lps::PrintSides::LongEdge:
                        selected==2?lps::PrintSides::ShortEdge:lps::PrintSides::Simplex;
-    print_selected(s,layout_sides(s),binding,"Print job submitted");
+    print_selected(s,layout_sides(s),binding,tr("Print job submitted"));
 }
 static void manual_fronts_clicked(GtkButton*,gpointer data) {
     auto* s=static_cast<State*>(data);
-    if(!s->doc){status(s,"Open a PDF first");return;}
+    if(!s->doc){status(s,tr("Open a PDF first"));return;}
     if(gtk_drop_down_get_selected(GTK_DROP_DOWN(s->duplex))!=3) return;
     std::string printer_name;
     if(!selected_printer(s,printer_name)) return;
@@ -270,9 +270,9 @@ static void manual_backs_clicked(GtkButton*,gpointer data) {
         const auto sides=layout_sides(s);
         const auto plan=lps::manual_duplex(sides.size(),
             gtk_check_button_get_active(GTK_CHECK_BUTTON(s->reverse_backs)));
-        if(plan.backs.empty()){status(s,"No back sides required");return;}
+        if(plan.backs.empty()){status(s,tr("No back sides required"));return;}
         const auto selected=lps::select_sides(sides,plan.backs);
-        if(print_selected(s,selected,lps::PrintSides::Simplex,"Back sides submitted; check paper orientation")) {
+        if(print_selected(s,selected,lps::PrintSides::Simplex,tr("Back sides submitted; check paper orientation"))) {
             s->manual_fronts_sent=false;
             gtk_widget_set_sensitive(s->manual_backs,FALSE);
         }
@@ -396,22 +396,22 @@ static void activate(GApplication* application,gpointer) {
     gtk_widget_set_margin_start(side,18);gtk_widget_set_margin_end(side,18);
     gtk_widget_set_margin_top(side,18);
     gtk_box_append(GTK_BOX(body),side);
-    gtk_box_append(GTK_BOX(side),label("Page layout"));
+    gtk_box_append(GTK_BOX(side),label(tr("Page layout")));
     const char* layouts[]={tr("Normal"),tr("Booklet"),tr("2 pages / sheet"),tr("4 pages / sheet"),tr("6 pages / sheet"),tr("9 pages / sheet"),tr("16 pages / sheet"),nullptr};
     s->layout=gtk_drop_down_new_from_strings(layouts);
     gtk_box_append(GTK_BOX(side),s->layout);
-    gtk_box_append(GTK_BOX(side),label("Orientation"));
+    gtk_box_append(GTK_BOX(side),label(tr("Orientation")));
     const char* orientations[]={tr("Automatic"),tr("Portrait"),tr("Landscape"),nullptr};
     s->orientation=gtk_drop_down_new_from_strings(orientations);
     gtk_box_append(GTK_BOX(side),s->orientation);
-    gtk_box_append(GTK_BOX(side),label("Paper size"));
+    gtk_box_append(GTK_BOX(side),label(tr("Paper size")));
     const char* papers[]={tr("A4"),tr("Letter"),tr("Legal"),nullptr};
     s->paper=gtk_drop_down_new_from_strings(papers);
     gtk_box_append(GTK_BOX(side),s->paper);
     g_signal_connect(s->layout,"notify::selected",G_CALLBACK(layout_changed),s);
     g_signal_connect(s->orientation,"notify::selected",G_CALLBACK(layout_changed),s);
     g_signal_connect(s->paper,"notify::selected",G_CALLBACK(layout_changed),s);
-    gtk_box_append(GTK_BOX(side),label("Printer"));
+    gtk_box_append(GTK_BOX(side),label(tr("Printer")));
     s->printer_names=lps::printers();
     auto def=lps::default_printer();
     ObjectPtr<GtkStringList> models(gtk_string_list_new(nullptr));
@@ -423,22 +423,22 @@ static void activate(GApplication* application,gpointer) {
     s->printer=gtk_drop_down_new(G_LIST_MODEL(models.get()),nullptr);
     gtk_drop_down_set_selected(GTK_DROP_DOWN(s->printer),s->printer_names.empty()?GTK_INVALID_LIST_POSITION:default_index);
     gtk_box_append(GTK_BOX(side),s->printer);
-    gtk_box_append(GTK_BOX(side),label("Copies"));
+    gtk_box_append(GTK_BOX(side),label(tr("Copies")));
     s->copies=gtk_spin_button_new_with_range(1,999,1);
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(s->copies),1);
     gtk_box_append(GTK_BOX(side),s->copies);
-    gtk_box_append(GTK_BOX(side),label("Duplex mode"));
+    gtk_box_append(GTK_BOX(side),label(tr("Duplex mode")));
     const char* duplex_modes[]={tr("One-sided"),tr("Automatic (long edge)"),tr("Automatic (short edge)"),tr("Manual (two passes)"),nullptr};
     s->duplex=gtk_drop_down_new_from_strings(duplex_modes);
     gtk_box_append(GTK_BOX(side),s->duplex);
-    s->reverse_backs=gtk_check_button_new_with_label("Reverse back-side order");
+    s->reverse_backs=gtk_check_button_new_with_label(tr("Reverse back-side order"));
     gtk_widget_set_visible(s->reverse_backs,FALSE);
     gtk_box_append(GTK_BOX(side),s->reverse_backs);
-    s->manual_fronts=gtk_button_new_with_label("1. Print fronts");
+    s->manual_fronts=gtk_button_new_with_label(tr("1. Print fronts"));
     gtk_widget_set_visible(s->manual_fronts,FALSE);
     g_signal_connect(s->manual_fronts,"clicked",G_CALLBACK(manual_fronts_clicked),s);
     gtk_box_append(GTK_BOX(side),s->manual_fronts);
-    s->manual_backs=gtk_button_new_with_label("2. Print backs (after reloading paper)");
+    s->manual_backs=gtk_button_new_with_label(tr("2. Print backs (after reloading paper)"));
     gtk_widget_set_visible(s->manual_backs,FALSE);
     gtk_widget_set_sensitive(s->manual_backs,FALSE);
     g_signal_connect(s->manual_backs,"clicked",G_CALLBACK(manual_backs_clicked),s);
@@ -455,20 +455,20 @@ static void activate(GApplication* application,gpointer) {
     gtk_label_set_xalign(GTK_LABEL(s->duplex_hint),0.0f);
     gtk_widget_set_visible(s->duplex_hint,FALSE);
     gtk_box_append(GTK_BOX(side),s->duplex_hint);
-    s->calibration_front=gtk_button_new_with_label("Calibration: print front");
+    s->calibration_front=gtk_button_new_with_label(tr("Calibration: print front"));
     gtk_widget_set_visible(s->calibration_front,FALSE);
     g_signal_connect(s->calibration_front,"clicked",G_CALLBACK(calibration_clicked),s);
     gtk_box_append(GTK_BOX(side),s->calibration_front);
-    s->calibration_back=gtk_button_new_with_label("Calibration: print back");
+    s->calibration_back=gtk_button_new_with_label(tr("Calibration: print back"));
     gtk_widget_set_visible(s->calibration_back,FALSE);
     gtk_widget_set_sensitive(s->calibration_back,FALSE);
     g_signal_connect(s->calibration_back,"clicked",G_CALLBACK(calibration_clicked),s);
     gtk_box_append(GTK_BOX(side),s->calibration_back);
-    auto* export_button=gtk_button_new_with_label("Export PDF");
+    auto* export_button=gtk_button_new_with_label(tr("Export PDF"));
     gtk_widget_add_css_class(export_button,"suggested-action");
     g_signal_connect(export_button,"clicked",G_CALLBACK(export_clicked),s);
     gtk_box_append(GTK_BOX(side),export_button);
-    auto* print_button=gtk_button_new_with_label("Print");
+    auto* print_button=gtk_button_new_with_label(tr("Print"));
     g_signal_connect(print_button,"clicked",G_CALLBACK(print_clicked),s);
     gtk_box_append(GTK_BOX(side),print_button);
     auto* main=gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
@@ -482,15 +482,15 @@ static void activate(GApplication* application,gpointer) {
     gtk_widget_set_halign(nav,GTK_ALIGN_CENTER);
     gtk_widget_set_margin_bottom(nav,10);
     gtk_box_append(GTK_BOX(main),nav);
-    auto* prev=gtk_button_new_with_label("Previous");
+    auto* prev=gtk_button_new_with_label(tr("Previous"));
     g_signal_connect(prev,"clicked",G_CALLBACK(page_back),s);
     gtk_box_append(GTK_BOX(nav),prev);
-    s->page_label=label("No document");
+    s->page_label=label(tr("No document"));
     gtk_box_append(GTK_BOX(nav),s->page_label);
-    auto* next=gtk_button_new_with_label("Next");
+    auto* next=gtk_button_new_with_label(tr("Next"));
     g_signal_connect(next,"clicked",G_CALLBACK(page_next),s);
     gtk_box_append(GTK_BOX(nav),next);
-    s->status=label("Open a PDF to begin");
+    s->status=label(tr("Open a PDF to begin"));
     gtk_widget_set_margin_start(s->status,16);
     gtk_widget_set_margin_bottom(s->status,8);
     gtk_box_append(GTK_BOX(outer),s->status);

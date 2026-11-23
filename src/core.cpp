@@ -9,6 +9,7 @@
 #include <string_view>
 #include <cmath>
 #include <memory>
+#include <cstdint>
 #include <stdexcept>
 
 namespace lps {
@@ -145,7 +146,14 @@ struct Doc {
     }
 };
 int page_count(const std::string& path) { Doc d(path); return poppler_document_get_n_pages(d.document.get()); }
-void export_pdf(const std::string& input,const std::string& output,const std::vector<Side>& sides,double pw,double ph) {
+void validate_render_options(const RenderOptions& o,double pw,double ph) {
+    if(!std::isfinite(o.scale_percent) || o.scale_percent<10 || o.scale_percent>200 ||
+       !std::isfinite(o.margin_mm) || o.margin_mm<0 || o.margin_mm>50 ||
+       o.margin_mm*72.0/25.4*2>=std::min(pw,ph))
+        throw std::invalid_argument("Invalid scale or margins");
+}
+void export_pdf(const std::string& input,const std::string& output,const std::vector<Side>& sides,double pw,double ph,const RenderOptions& options) {
+    validate_render_options(options,pw,ph);
     if(sides.empty() || !std::isfinite(pw) || !std::isfinite(ph) || pw<=0 || ph<=0 || pw>14400 || ph>14400 || input==output) throw std::invalid_argument("Invalid export");
     Doc d(input);
     std::unique_ptr<cairo_surface_t,SurfaceDeleter> surface(cairo_pdf_surface_create(output.c_str(),pw,ph));
@@ -159,8 +167,10 @@ void export_pdf(const std::string& input,const std::string& output,const std::ve
                      count==6 ? (pw>=ph ? 3 : 2) :
                      static_cast<size_t>(std::ceil(std::sqrt(static_cast<double>(count)))));
         size_t rows=(count+cols-1)/cols;
-        const double cellw=pw/static_cast<double>(cols);
-        const double cellh=ph/static_cast<double>(rows);
+        const double margin=options.margin_mm*72.0/25.4;
+        const double usable_w=pw-2*margin, usable_h=ph-2*margin;
+        const double cellw=usable_w/static_cast<double>(cols);
+        const double cellh=usable_h/static_cast<double>(rows);
         cairo_set_source_rgb(cr.get(),1,1,1);
         cairo_paint(cr.get());
         const int document_pages=poppler_document_get_n_pages(d.document.get());
@@ -174,18 +184,42 @@ void export_pdf(const std::string& input,const std::string& output,const std::ve
             double w=0,h=0;
             poppler_page_get_size(page.get(),&w,&h);
             if(!std::isfinite(w) || !std::isfinite(h) || w<=0 || h<=0) continue;
-            const double scale=std::min(cellw/w,cellh/h);
-            const double cellx=static_cast<double>(j%cols)*cellw;
+            const double scale=std::min(cellw/w,cellh/h)*options.scale_percent/100.0;
+            const double cellx=margin+static_cast<double>(j%cols)*cellw;
             const size_t row=j/cols;
-            const double celly=static_cast<double>(row)*cellh;
-            const double x=cellx+(cellw-w*scale)/2.0;
-            const double y=celly+(cellh-h*scale)/2.0;
+            const double celly=margin+static_cast<double>(row)*cellh;
+            const double x=cellx+(options.centered?(cellw-w*scale)/2.0:0.0);
+            const double y=celly+(options.centered?(cellh-h*scale)/2.0:0.0);
             cairo_save(cr.get());
             cairo_rectangle(cr.get(),cellx,celly,cellw,cellh);
             cairo_clip(cr.get());
             cairo_translate(cr.get(),x,y);
             cairo_scale(cr.get(),scale,scale);
-            poppler_page_render_for_printing(page.get(),cr.get());
+            if(options.grayscale) {
+                // Render the page to an ARGB32 image, convert RGB channels, then composite.
+                const int iw=std::clamp(static_cast<int>(std::ceil(w)),1,14400);
+                const int ih=std::clamp(static_cast<int>(std::ceil(h)),1,14400);
+                std::unique_ptr<cairo_surface_t,SurfaceDeleter> image(cairo_image_surface_create(CAIRO_FORMAT_ARGB32,iw,ih));
+                if(cairo_surface_status(image.get())!=CAIRO_STATUS_SUCCESS) throw std::runtime_error("Grayscale image allocation failed");
+                std::unique_ptr<cairo_t,ContextDeleter> image_cr(cairo_create(image.get()));
+                cairo_set_source_rgb(image_cr.get(),1,1,1);cairo_paint(image_cr.get());
+                poppler_page_render_for_printing(page.get(),image_cr.get());
+                cairo_surface_flush(image.get());
+                auto* pixels=cairo_image_surface_get_data(image.get());
+                const int stride=cairo_image_surface_get_stride(image.get());
+                for(int yy=0;yy<ih;yy++) {
+                    auto* row=reinterpret_cast<uint32_t*>(pixels+yy*stride);
+                    for(int xx=0;xx<iw;xx++) {
+                        const uint32_t px=row[xx];
+                        const unsigned a=(px>>24)&255,red=(px>>16)&255,green=(px>>8)&255,blue=px&255;
+                        const unsigned gray=(54*red+183*green+19*blue+128)/256;
+                        row[xx]=(a<<24)|(gray<<16)|(gray<<8)|gray;
+                    }
+                }
+                cairo_surface_mark_dirty(image.get());
+                cairo_set_source_surface(cr.get(),image.get(),0,0);
+                cairo_paint(cr.get());
+            } else poppler_page_render_for_printing(page.get(),cr.get());
             cairo_restore(cr.get());
         }
         cairo_show_page(cr.get());

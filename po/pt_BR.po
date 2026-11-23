@@ -1,0 +1,167 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\\n"
+"Language: pt_BR\\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\\n"
+
+msgid "Linux Print Studio"
+msgstr "Linux Print Studio"
+
+msgid "Open PDF"
+msgstr "Abrir PDF"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Booklet"
+msgstr "Livreto"
+
+msgid "2 pages / sheet"
+msgstr "2 páginas por folha"
+
+msgid "4 pages / sheet"
+msgstr "4 páginas por folha"
+
+msgid "6 pages / sheet"
+msgstr "6 páginas por folha"
+
+msgid "9 pages / sheet"
+msgstr "9 páginas por folha"
+
+msgid "16 pages / sheet"
+msgstr "16 páginas por folha"
+
+msgid "Automatic"
+msgstr "Automático"
+
+msgid "Portrait"
+msgstr "Retrato"
+
+msgid "Landscape"
+msgstr "Paisagem"
+
+msgid "A4"
+msgstr "A4"
+
+msgid "Letter"
+msgstr "Carta"
+
+msgid "Legal"
+msgstr "Ofício"
+
+msgid "One-sided"
+msgstr "Somente frente"
+
+msgid "Automatic (long edge)"
+msgstr "Automático (borda longa)"
+
+msgid "Automatic (short edge)"
+msgstr "Automático (borda curta)"
+
+msgid "Manual (two passes)"
+msgstr "Manual (duas passagens)"
+
+msgid "All sheets"
+msgstr "Todas as folhas"
+
+msgid "Front pass"
+msgstr "Impressão das frentes"
+
+msgid "Back pass"
+msgstr "Impressão dos versos"
+
+msgid "Page layout"
+msgstr "Layout das páginas"
+
+msgid "Orientation"
+msgstr "Orientação"
+
+msgid "Paper size"
+msgstr "Tamanho do papel"
+
+msgid "Printer"
+msgstr "Impressora"
+
+msgid "Copies"
+msgstr "Cópias"
+
+msgid "Duplex mode"
+msgstr "Impressão frente e verso"
+
+msgid "Reverse back-side order"
+msgstr "Inverter ordem dos versos"
+
+msgid "1. Print fronts"
+msgstr "1. Imprimir frentes"
+
+msgid "2. Print backs (after reloading paper)"
+msgstr "2. Imprimir versos (após recolocar papel)"
+
+msgid "Calibration: print front"
+msgstr "Calibração: imprimir frente"
+
+msgid "Calibration: print back"
+msgstr "Calibração: imprimir verso"
+
+msgid "Export PDF"
+msgstr "Exportar PDF"
+
+msgid "Print"
+msgstr "Imprimir"
+
+msgid "Previous"
+msgstr "Anterior"
+
+msgid "Next"
+msgstr "Próxima"
+
+msgid "No document"
+msgstr "Nenhum documento"
+
+msgid "Open a PDF to begin"
+msgstr "Abra um PDF para começar"
+
+msgid "No sides in this pass"
+msgstr "Nenhum lado nesta passagem"
+
+msgid "Front"
+msgstr "Frente"
+
+msgid "Back"
+msgstr "Verso"
+
+msgid "Sheet"
+msgstr "Folha"
+
+msgid "Open a PDF first"
+msgstr "Abra um PDF primeiro"
+
+msgid "Select a printer"
+msgstr "Selecione uma impressora"
+
+msgid "No back sides required"
+msgstr "Não há versos para imprimir"
+
+msgid "Invalid path"
+msgstr "Caminho inválido"
+
+msgid "Could not open PDF"
+msgstr "Não foi possível abrir o PDF"
+
+msgid "PDF documents"
+msgstr "Documentos PDF"
+
+msgid "Open"
+msgstr "Abrir"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Manual duplex: click Print fronts first, then reload paper and click Print backs"
+msgstr "Duplex manual: imprima as frentes, recoloque o papel e depois imprima os versos"
+
+msgid "Print job submitted"
+msgstr "Trabalho de impressão enviado"
+
+msgid "Back sides submitted; check paper orientation"
+msgstr "Versos enviados; verifique a orientação do papel"

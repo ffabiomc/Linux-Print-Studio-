@@ -189,3 +189,9 @@ msgstr "páginas"
 
 msgid "sheets"
 msgstr "folhas"
+
+msgid "Refresh printers"
+msgstr "Atualizar impressoras"
+
+msgid "No printers configured"
+msgstr "Nenhuma impressora configurada"

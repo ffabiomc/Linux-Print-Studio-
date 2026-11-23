@@ -4,6 +4,9 @@
 #include <cups/cups.h>
 #include <glib.h>
 #include <algorithm>
+#include <charconv>
+#include <cctype>
+#include <string_view>
 #include <cmath>
 #include <memory>
 #include <stdexcept>
@@ -17,6 +20,44 @@ struct SurfaceDeleter { void operator()(cairo_surface_t* p) const noexcept { if(
 struct ContextDeleter { void operator()(cairo_t* p) const noexcept { if(p) cairo_destroy(p); } };
 struct Dests { cups_dest_t* data=nullptr; int count=0; ~Dests(){cupsFreeDests(count,data);} };
 struct Options { cups_option_t* data=nullptr; int count=0; ~Options(){cupsFreeOptions(count,data);} };
+}
+
+std::vector<size_t> parse_page_range(const std::string& expression,size_t total_pages) {
+    if(total_pages==0 || total_pages>100000) throw std::invalid_argument("Invalid page count");
+    std::vector<size_t> result;
+    std::vector<bool> seen(total_pages+1,false);
+    const auto parse=[total_pages](std::string_view value)->size_t {
+        while(!value.empty() && std::isspace(static_cast<unsigned char>(value.front()))) value.remove_prefix(1);
+        while(!value.empty() && std::isspace(static_cast<unsigned char>(value.back()))) value.remove_suffix(1);
+        size_t number=0;
+        if(value.empty()) throw std::invalid_argument("Invalid page range");
+        auto [end,err]=std::from_chars(value.data(),value.data()+value.size(),number);
+        if(err!=std::errc{} || end!=value.data()+value.size() || number<1 || number>total_pages)
+            throw std::invalid_argument("Page outside document or invalid range");
+        return number;
+    };
+    size_t start=0;
+    while(start<expression.size()) {
+        const size_t comma=expression.find(',',start);
+        const auto part=std::string_view(expression).substr(start,comma==std::string::npos?std::string::npos:comma-start);
+        const auto dash=part.find('-');
+        const size_t first=parse(part.substr(0,dash));
+        const size_t last=dash==std::string_view::npos?first:parse(part.substr(dash+1));
+        if(last<first) throw std::invalid_argument("Descending page range");
+        for(size_t n=first;n<=last;n++) if(!seen[n]) {seen[n]=true;result.push_back(n);}
+        if(comma==std::string::npos) break;
+        start=comma+1;
+    }
+    if(expression.empty() || expression.back()==',' || result.empty()) throw std::invalid_argument("Empty page range");
+    return result;
+}
+std::vector<Side> remap_pages(const std::vector<Side>& sides,const std::vector<size_t>& pages) {
+    std::vector<Side> mapped=sides;
+    for(auto& side:mapped) for(auto& slot:side) if(slot) {
+        if(*slot<1 || *slot>pages.size()) throw std::out_of_range("Invalid page mapping");
+        slot=pages[*slot-1];
+    }
+    return mapped;
 }
 
 std::vector<Side> n_up(size_t pages, size_t per_sheet) {

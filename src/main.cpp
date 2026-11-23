@@ -27,7 +27,7 @@ struct GFree {
 using OwnedString=std::unique_ptr<gchar,GFree>;
 }
 struct State {
-    GtkWidget *window=nullptr,*preview=nullptr,*status=nullptr,*page_label=nullptr,*prev_button=nullptr,*next_button=nullptr,*print_button=nullptr,*export_button=nullptr,*document_info=nullptr,*zoom=nullptr;
+    GtkWidget *window=nullptr,*preview=nullptr,*status=nullptr,*page_label=nullptr,*prev_button=nullptr,*next_button=nullptr,*print_button=nullptr,*export_button=nullptr,*document_info=nullptr,*zoom=nullptr,*scroller=nullptr;
     GtkWidget *layout=nullptr,*orientation=nullptr,*paper=nullptr,*copies=nullptr,*duplex=nullptr,*printer=nullptr,*reverse_backs=nullptr,*manual_fronts=nullptr,*manual_backs=nullptr,*preview_pass=nullptr,*duplex_hint=nullptr,*calibration_front=nullptr,*calibration_back=nullptr;
     ObjectPtr<PopplerDocument> doc;
     std::string path;
@@ -35,6 +35,7 @@ struct State {
     int page=0;
     double zoom_factor=1.0;
     bool fit_width=false;
+    int last_view_width=0,last_view_height=0;
     bool manual_fronts_sent=false;
 
 };
@@ -66,6 +67,38 @@ static void refresh_duplex_hint(State* s) {
     gtk_label_set_text(GTK_LABEL(s->duplex_hint),message.c_str());
 }
 
+static void resize_preview(State* s) {
+    if(!s->scroller || !s->preview) return;
+    const int vw=gtk_widget_get_width(s->scroller);
+    const int vh=gtk_widget_get_height(s->scroller);
+    if(vw<50 || vh<50) return;
+    const int available_w=std::max(50,vw-40);
+    const int available_h=std::max(50,vh-40);
+    if(!s->doc) {
+        gtk_drawing_area_set_content_width(GTK_DRAWING_AREA(s->preview),vw);
+        gtk_drawing_area_set_content_height(GTK_DRAWING_AREA(s->preview),vh);
+        return;
+    }
+    const auto [pw,ph]=output_size(s);
+    if(pw<=0 || ph<=0) return;
+    const double fit=std::min(available_w/pw,available_h/ph);
+    const double scale=(s->fit_width?available_w/pw:fit)*s->zoom_factor;
+    const int desired_w=std::max(vw,static_cast<int>(std::ceil(pw*scale))+40);
+    const int desired_h=std::max(vh,static_cast<int>(std::ceil(ph*scale))+40);
+    gtk_drawing_area_set_content_width(GTK_DRAWING_AREA(s->preview),desired_w);
+    gtk_drawing_area_set_content_height(GTK_DRAWING_AREA(s->preview),desired_h);
+}
+static gboolean preview_resize_tick(GtkWidget*,GdkFrameClock*,gpointer data) {
+    auto* s=static_cast<State*>(data);
+    if(!s->scroller) return G_SOURCE_CONTINUE;
+    const int w=gtk_widget_get_width(s->scroller);
+    const int h=gtk_widget_get_height(s->scroller);
+    if(w!=s->last_view_width || h!=s->last_view_height) {
+        s->last_view_width=w;s->last_view_height=h;
+        resize_preview(s);
+    }
+    return G_SOURCE_CONTINUE;
+}
 static void preview_draw(GtkDrawingArea*,cairo_t* cr,int width,int height,gpointer data) {
     auto* s=static_cast<State*>(data);
     cairo_set_source_rgb(cr,.88,.89,.91);
@@ -92,8 +125,10 @@ static void preview_draw(GtkDrawingArea*,cairo_t* cr,int width,int height,gpoint
     if(sides.empty() || s->page<0 || static_cast<size_t>(s->page)>=sides.size()) return;
     auto [pw,ph]=output_size(s);
     if(pw<=0 || ph<=0) return;
-    const double fitted=std::max(.01,std::min((width-40.0)/pw,(height-40.0)/ph));
-    const double zoom=std::max(.01,(s->fit_width?(width-40.0)/pw:fitted)*s->zoom_factor);
+    const int vw=s->scroller?gtk_widget_get_width(s->scroller):width;
+    const int vh=s->scroller?gtk_widget_get_height(s->scroller):height;
+    const double fitted=std::max(.01,std::min((vw-40.0)/pw,(vh-40.0)/ph));
+    const double zoom=std::max(.01,(s->fit_width?(vw-40.0)/pw:fitted)*s->zoom_factor);
     const double ox=(width-pw*zoom)/2.0, oy=(height-ph*zoom)/2.0;
     cairo_save(cr);
     cairo_translate(cr,ox,oy);
@@ -167,6 +202,7 @@ static void update_page(State* s) {
         gtk_label_set_text(GTK_LABEL(s->document_info),info.c_str());
     }
     if(manual) refresh_duplex_hint(s);
+    resize_preview(s);
     gtk_widget_queue_draw(s->preview);
 }
 static void layout_changed(GObject*,GParamSpec*,gpointer data) {
@@ -233,6 +269,7 @@ static void zoom_changed(GtkDropDown* dropdown,GParamSpec*,gpointer data) {
     const unsigned index=gtk_drop_down_get_selected(dropdown);
     s->fit_width=index==1;
     s->zoom_factor=index==2?.5:index==3?.75:index==4?1.0:index==5?1.25:index==6?1.5:index==7?2.0:1.0;
+    resize_preview(s);
     gtk_widget_queue_draw(s->preview);
 }
 static void page_back(GtkButton*,gpointer data){auto* s=static_cast<State*>(data);s->page--;update_page(s);}
@@ -537,10 +574,17 @@ static void activate(GApplication* application,gpointer) {
     auto* main=gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
     gtk_widget_set_hexpand(main,TRUE);
     gtk_box_append(GTK_BOX(body),main);
+    s->scroller=gtk_scrolled_window_new();
+    gtk_widget_set_hexpand(s->scroller,TRUE);
+    gtk_widget_set_vexpand(s->scroller,TRUE);
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(s->scroller),GTK_POLICY_AUTOMATIC,GTK_POLICY_AUTOMATIC);
     s->preview=gtk_drawing_area_new();
-    gtk_widget_set_hexpand(s->preview,TRUE);gtk_widget_set_vexpand(s->preview,TRUE);
+    gtk_widget_set_hexpand(s->preview,TRUE);
+    gtk_widget_set_vexpand(s->preview,TRUE);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(s->scroller),s->preview);
+    gtk_widget_add_tick_callback(s->scroller,preview_resize_tick,s,nullptr);
     gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(s->preview),preview_draw,s,nullptr);
-    gtk_box_append(GTK_BOX(main),s->preview);
+    gtk_box_append(GTK_BOX(main),s->scroller);
     auto* drop=gtk_drop_target_new(G_TYPE_FILE,GDK_ACTION_COPY);
     g_signal_connect(drop,"drop",G_CALLBACK(dropped_file),s);
     gtk_widget_add_controller(s->preview,GTK_EVENT_CONTROLLER(drop));

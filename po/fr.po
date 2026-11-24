@@ -402,3 +402,12 @@ msgstr "Supprimer les paramètres d’impression enregistrés ? Les profils nomm
 
 msgid "Printing defaults reset; reopen the application."
 msgstr "Paramètres d’impression réinitialisés ; rouvrez l’application."
+
+msgid "Language"
+msgstr "Langue"
+
+msgid "System language"
+msgstr "Langue du système"
+
+msgid "Language changed; reopen the application."
+msgstr "Langue modifiée ; relancez l’application."

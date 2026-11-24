@@ -168,3 +168,62 @@ jobs:
           test -f build-sanitize/compile_commands.json
           timeout --signal=TERM --kill-after=10s 180s clang-tidy -p build-sanitize src/core.cpp tests/core_tests.cpp --checks='-*,clang-analyzer-*,bugprone-*,cert-*' --header-filter='^(.*/)?(src|include|tests)/' --warnings-as-errors='clang-analyzer-*,bugprone-*' 2>&1 | tee clang-tidy.log
           test ${PIPESTATUS[0]} -eq 0
+
+  opensuse-rpm:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    container:
+      image: opensuse/tumbleweed
+    steps:
+      - name: Dependencies
+        run: zypper --non-interactive install git gzip tar gcc-c++ cmake ninja pkg-config gtk4-devel libadwaita-devel poppler-glib-devel cairo-devel cups-devel rpm-build gettext-tools desktop-file-utils python3
+      - uses: actions/checkout@v4
+      - name: Build and test
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DLPS_CUPS_BACKEND_DIR=lib/cups/backend
+          cmake --build build --parallel 2
+          ctest --test-dir build --output-on-failure
+          desktop-file-validate data/io.github.ffabiomc.LinuxPrintStudio.desktop
+          for lang in pt_BR pt_PT es fr de it ru zh_CN ja ko ar fi sv; do
+            msgfmt --check-format -o /dev/null "po/$lang.po"
+          done
+      - name: Package
+        run: |
+          mkdir -p staging rpmbuild/SPECS
+          DESTDIR="$PWD/staging" cmake --install build
+          cat > rpmbuild/SPECS/linux-print-studio-cpp.spec <<'SPEC'
+          Name: linux-print-studio-cpp
+          Version: 1.0.2
+          Release: ${{ github.run_number }}.opensuse
+          Summary: Linux Print Studio GTK edition
+          License: MIT
+          BuildArch: x86_64
+          Requires: cups, python3, systemd, polkit
+          %description
+          Native GTK4 PDF printing studio for Linux.
+          %install
+          mkdir -p %{buildroot}
+          cp -a %{staging}/. %{buildroot}/
+          %files
+          /usr/bin/linux-print-studio
+          /usr/bin/lps-virtual-printer
+          /usr/bin/lps-receive
+          %attr(0700,root,root) /usr/lib/cups/backend/lps
+          /usr/lib/systemd/user/lps-receive.service
+          /usr/share/applications/io.github.ffabiomc.LinuxPrintStudio.desktop
+          /usr/share/icons/hicolor/scalable/apps/io.github.ffabiomc.LinuxPrintStudio.svg
+          /usr/share/locale/*/LC_MESSAGES/linux-print-studio.mo
+          SPEC
+          rpmbuild -bb --define "_topdir $PWD/rpmbuild" --define "staging $PWD/staging" rpmbuild/SPECS/linux-print-studio-cpp.spec
+          cp rpmbuild/RPMS/x86_64/*.rpm .
+          zypper --non-interactive --no-gpg-checks install ./*.rpm
+          for lang in pt_BR pt_PT es fr de it ru zh_CN ja ko ar fi sv; do
+            test -s "/usr/share/locale/$lang/LC_MESSAGES/linux-print-studio.mo"
+          done
+          sha256sum *.rpm > SHA256SUMS-opensuse
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-print-studio-cpp-opensuse-rpm-build-${{ github.run_number }}
+          path: |
+            *.rpm
+            SHA256SUMS-opensuse

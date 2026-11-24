@@ -103,7 +103,7 @@ std::vector<PrinterInfo> printer_details() {
     std::vector<PrinterInfo> result;
     for(int i=0;i<dests.count;i++) {
         const auto& dest=dests.data[i];
-        if(!dest.name) continue;
+        if(!dest.name || std::string_view(dest.name)=="Linux_Print_Studio") continue;
         const char* model=cupsGetOption("printer-make-and-model",dest.num_options,dest.options);
         const char* location=cupsGetOption("printer-location",dest.num_options,dest.options);
         const char* state=cupsGetOption("printer-state",dest.num_options,dest.options);
@@ -122,7 +122,7 @@ std::vector<std::string> printers() {
     Dests dests;
     dests.count=cupsGetDests(&dests.data);
     std::vector<std::string> result;
-    for(int i=0;i<dests.count;i++) if(dests.data[i].name) result.emplace_back(dests.data[i].name);
+    for(int i=0;i<dests.count;i++) if(dests.data[i].name && std::string_view(dests.data[i].name)!="Linux_Print_Studio") result.emplace_back(dests.data[i].name);
     return result;
 }
 std::string default_printer() {
@@ -240,7 +240,7 @@ std::vector<Side> select_sides(const std::vector<Side>& sides,const std::vector<
     return result;
 }
 int print_pdf(const std::string& path,const std::string& printer,int copies,PrintSides sides,int quality) {
-    if(printer.empty() || copies<1 || copies>999) throw std::invalid_argument("Invalid print options");
+    if(printer.empty() || printer=="Linux_Print_Studio" || copies<1 || copies>999) throw std::invalid_argument("Invalid print options");
     Options options;
     options.count=cupsAddOption("copies",std::to_string(copies).c_str(),options.count,&options.data);
     const char* binding=sides==PrintSides::LongEdge?"two-sided-long-edge":

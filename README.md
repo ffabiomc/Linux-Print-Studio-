@@ -4,6 +4,8 @@ Native Linux PDF printing and layout application built with C++20, GTK4 and liba
 
 [Português (Brasil)](README.pt_BR.md) · [Downloads](https://github.com/ffabiomc/Linux-Print-Studio-/releases) · [Builds](https://github.com/ffabiomc/Linux-Print-Studio-/actions) · [Report an issue](https://github.com/ffabiomc/Linux-Print-Studio-/issues)
 
+[Changelog](CHANGELOG.md) · [User manual (Portuguese)](docs/manual.pt_BR.md)
+
 ## Features
 
 - Local PDF loading, drag and drop, preview and zoom.

@@ -31,7 +31,7 @@ jobs:
         run: |
           mkdir -p pkg/DEBIAN
           DESTDIR="$PWD/pkg" cmake --install build --prefix /usr
-          printf 'Package: linux-print-studio-cpp\nVersion: 1.0.2-${{ github.run_number }}\nArchitecture: amd64\nMaintainer: Linux Print Studio\nDepends: libgtk-4-1, libadwaita-1-0, libpoppler-glib8, libcups2, libcairo2, cups-client, python3, systemd\nDescription: Linux Print Studio GTK edition\n' > pkg/DEBIAN/control
+          printf 'Package: linux-print-studio-cpp\nVersion: 1.0.2-${{ github.run_number }}\nArchitecture: amd64\nMaintainer: Linux Print Studio\nDepends: libgtk-4-1, libadwaita-1-0, libpoppler-glib8, libcups2, libcairo2, cups-client, python3, systemd, pkexec\nDescription: Linux Print Studio GTK edition\n' > pkg/DEBIAN/control
           dpkg-deb --root-owner-group --build pkg linux-print-studio-cpp_1.0.2-${{ github.run_number }}_amd64.deb
       - uses: actions/upload-artifact@v4
         with:
@@ -81,7 +81,7 @@ jobs:
           License: MIT
           BuildArch: x86_64
           AutoReqProv: yes
-          Requires: cups, python3, systemd
+          Requires: cups, python3, systemd, polkit
           %description
           Native GTK4 PDF printing studio for Linux.
           %install

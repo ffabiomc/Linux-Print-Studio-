@@ -303,3 +303,33 @@ msgstr "Após imprimir as frentes, recoloque as folhas com a borda inferior entr
 
 msgid "Paper orientation is not calibrated. Use the front/back calibration sheets before printing a large job."
 msgstr "A orientação não foi calibrada. Teste com as folhas de calibração antes de imprimir muitas páginas."
+
+msgid "Virtual printer"
+msgstr "Impressora virtual"
+
+msgid "Virtual printer installed; receiver running."
+msgstr "Impressora virtual instalada; receptor em execução."
+
+msgid "Virtual printer installed; receiver stopped."
+msgstr "Impressora virtual instalada; receptor parado."
+
+msgid "Install the virtual printer to receive documents from other applications."
+msgstr "Instale a impressora virtual para receber documentos de outros aplicativos."
+
+msgid "Repair"
+msgstr "Reparar"
+
+msgid "Install"
+msgstr "Instalar"
+
+msgid "Remove"
+msgstr "Remover"
+
+msgid "Close"
+msgstr "Fechar"
+
+msgid "Configuration completed."
+msgstr "Configuração concluída."
+
+msgid "Configuration failed or authorization was cancelled."
+msgstr "Falha na configuração ou autorização cancelada."

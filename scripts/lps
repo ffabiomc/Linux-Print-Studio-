@@ -28,18 +28,15 @@ def main():
         if header != b'%PDF-':
             print('ERROR: Only PDF print jobs are supported', file=sys.stderr)
             return 1
-        os.initgroups(user.pw_name, user.pw_gid)
-        os.setgid(user.pw_gid)
-        os.setuid(uid)
-        runtime = '/run/user/' + str(uid)
-        info = os.stat(runtime, follow_symlinks=False)
-        if not stat.S_ISDIR(info.st_mode) or info.st_uid != uid or info.st_mode & 0o077:
+        base = '/var/spool/cups/lps-delivery'
+        info = os.stat(base, follow_symlinks=False)
+        if not stat.S_ISDIR(info.st_mode) or info.st_uid != 0 or info.st_mode & 0o022:
             return 1
-        directory = tempfile.mkdtemp(prefix='lps-print-', dir=runtime)
+        directory = tempfile.mkdtemp(prefix='job-', dir=base)
         path = os.path.join(directory, 'document.pdf')
         try:
             with open(path, 'xb') as target:
-                os.chmod(path, 0o600)
+                os.fchmod(target.fileno(), 0o600)
                 target.write(header)
                 total = len(header)
                 while True:
@@ -50,14 +47,12 @@ def main():
                     if total > 512 * 1024 * 1024:
                         raise ValueError('PDF exceeds 512 MiB')
                     target.write(chunk)
-            env = {'PATH': '/usr/bin:/bin', 'HOME': user.pw_dir,
-                   'USER': user.pw_name, 'XDG_RUNTIME_DIR': runtime,
-                   'DBUS_SESSION_BUS_ADDRESS': 'unix:path=' + runtime + '/bus'}
-            subprocess.run(['/usr/bin/systemd-run', '--user', '--collect',
-                            '/usr/bin/linux-print-studio', path],
-                           env=env, check=True, timeout=20)
+                os.fchown(target.fileno(), uid, user.pw_gid)
+            os.chown(directory, uid, user.pw_gid)
+            os.rename(directory, os.path.join(base, str(uid) + '-' + os.path.basename(directory)))
         except Exception:
-            os.unlink(path) if os.path.exists(path) else None
+            if os.path.exists(path):
+                os.unlink(path)
             os.rmdir(directory)
             raise
     return 0

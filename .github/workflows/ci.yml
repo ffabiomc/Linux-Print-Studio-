@@ -12,7 +12,7 @@ jobs:
       - name: Dependencies
         run: |
           sudo timeout --signal=TERM --kill-after=10s 180s apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update
-          sudo timeout --signal=TERM --kill-after=10s 600s apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y --no-install-recommends cmake ninja-build g++ pkg-config libgtk-4-dev libadwaita-1-dev libpoppler-glib-dev libcairo2-dev libcups2-dev libgnutls28-dev libavahi-client-dev gettext desktop-file-utils
+          sudo timeout --signal=TERM --kill-after=10s 600s apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y --no-install-recommends cmake ninja-build g++ pkg-config libgtk-4-dev libadwaita-1-dev libpoppler-glib-dev libcairo2-dev libcups2-dev libgnutls28-dev libavahi-client-dev gettext desktop-file-utils xvfb xauth dbus-x11
       - name: Configure
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
       - name: Build
@@ -21,6 +21,10 @@ jobs:
         run: |
           ctest --test-dir build --output-on-failure
           desktop-file-validate data/io.github.ffabiomc.LinuxPrintStudio.desktop
+      - name: Graphical startup smoke test
+        run: |
+          timeout 30s xvfb-run -a dbus-run-session -- env LPS_SMOKE_TEST=1 GSK_RENDERER=cairo ./build/linux-print-studio
+          timeout 30s xvfb-run -a dbus-run-session -- env LPS_SMOKE_TEST=1 ADW_DEBUG_COLOR_SCHEME=prefer-dark GSK_RENDERER=cairo ./build/linux-print-studio
       - name: Package Debian
         run: |
           mkdir -p pkg/DEBIAN
@@ -48,6 +52,8 @@ jobs:
         run: |
           ctest --test-dir build --output-on-failure
           desktop-file-validate data/io.github.ffabiomc.LinuxPrintStudio.desktop
+      - name: Graphical startup smoke test
+        run: timeout 30s xvfb-run -a dbus-run-session -- env LPS_SMOKE_TEST=1 GSK_RENDERER=cairo ./build/linux-print-studio
       - name: Package RPM
         run: |
           mkdir -p staging

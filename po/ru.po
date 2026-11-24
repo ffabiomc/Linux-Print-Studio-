@@ -1,0 +1,404 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+
+msgid "Linux Print Studio"
+msgstr "Linux Print Studio"
+
+msgid "Open PDF"
+msgstr "Открыть PDF"
+
+msgid "Normal"
+msgstr "Обычный"
+
+msgid "Booklet"
+msgstr "Брошюра"
+
+msgid "2 pages / sheet"
+msgstr "2 страницы на листе"
+
+msgid "4 pages / sheet"
+msgstr "4 страницы на листе"
+
+msgid "6 pages / sheet"
+msgstr "6 страниц на листе"
+
+msgid "9 pages / sheet"
+msgstr "9 страниц на листе"
+
+msgid "16 pages / sheet"
+msgstr "16 страниц на листе"
+
+msgid "Automatic"
+msgstr "Автоматически"
+
+msgid "Portrait"
+msgstr "Книжная"
+
+msgid "Landscape"
+msgstr "Альбомная"
+
+msgid "A4"
+msgstr "A4"
+
+msgid "Letter"
+msgstr "Letter"
+
+msgid "Legal"
+msgstr "Legal"
+
+msgid "One-sided"
+msgstr "Односторонняя печать"
+
+msgid "Automatic (long edge)"
+msgstr "Автоматически (длинный край)"
+
+msgid "Automatic (short edge)"
+msgstr "Автоматически (короткий край)"
+
+msgid "Manual (two passes)"
+msgstr "Вручную (два прохода)"
+
+msgid "All sheets"
+msgstr "Все листы"
+
+msgid "Front pass"
+msgstr "Печать лицевых сторон"
+
+msgid "Back pass"
+msgstr "Печать оборотных сторон"
+
+msgid "Page layout"
+msgstr "Макет страницы"
+
+msgid "Orientation"
+msgstr "Ориентация"
+
+msgid "Paper size"
+msgstr "Формат бумаги"
+
+msgid "Printer"
+msgstr "Принтер"
+
+msgid "Copies"
+msgstr "Копии"
+
+msgid "Duplex mode"
+msgstr "Двусторонняя печать"
+
+msgid "Reverse back-side order"
+msgstr "Обратный порядок оборотных сторон"
+
+msgid "1. Print fronts"
+msgstr "1. Печатать лицевые стороны"
+
+msgid "2. Print backs (after reloading paper)"
+msgstr "2. Печатать оборотные стороны (после повторной загрузки бумаги)"
+
+msgid "Calibration: print front"
+msgstr "Калибровка: печать лицевой стороны"
+
+msgid "Calibration: print back"
+msgstr "Калибровка: печать оборотной стороны"
+
+msgid "Export PDF"
+msgstr "Экспорт PDF"
+
+msgid "Print"
+msgstr "Печать"
+
+msgid "Previous"
+msgstr "Назад"
+
+msgid "Next"
+msgstr "Далее"
+
+msgid "No document"
+msgstr "Нет документа"
+
+msgid "Open a PDF to begin"
+msgstr "Откройте PDF, чтобы начать"
+
+msgid "No sides in this pass"
+msgstr "Нет сторон для этого прохода"
+
+msgid "Front"
+msgstr "Лицевая сторона"
+
+msgid "Back"
+msgstr "Оборотная сторона"
+
+msgid "Sheet"
+msgstr "Лист"
+
+msgid "Open a PDF first"
+msgstr "Сначала откройте PDF"
+
+msgid "Select a printer"
+msgstr "Выберите принтер"
+
+msgid "No back sides required"
+msgstr "Печать оборотных сторон не требуется"
+
+msgid "Invalid path"
+msgstr "Недопустимый путь"
+
+msgid "Could not open PDF"
+msgstr "Не удалось открыть PDF"
+
+msgid "PDF documents"
+msgstr "Документы PDF"
+
+msgid "Open"
+msgstr "Открыть"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "Manual duplex: click Print fronts first, then reload paper and click Print backs"
+msgstr "Ручная двусторонняя печать: сначала напечатайте лицевые стороны, затем загрузите бумагу повторно и напечатайте оборотные стороны"
+
+msgid "Print job submitted"
+msgstr "Задание печати отправлено"
+
+msgid "Back sides submitted; check paper orientation"
+msgstr "Оборотные стороны отправлены на печать; проверьте ориентацию бумаги"
+
+msgid "Open a PDF to preview and configure printing"
+msgstr "Откройте PDF для предварительного просмотра и настройки печати"
+
+msgid "Only local PDF files are supported"
+msgstr "Поддерживаются только локальные файлы PDF"
+
+msgid "Drop a PDF file"
+msgstr "Перетащите файл PDF"
+
+msgid "Zoom"
+msgstr "Масштаб"
+
+msgid "Fit page"
+msgstr "По размеру страницы"
+
+msgid "Fit width"
+msgstr "По ширине"
+
+msgid "pages"
+msgstr "стр."
+
+msgid "sheets"
+msgstr "листов"
+
+msgid "Refresh printers"
+msgstr "Обновить список принтеров"
+
+msgid "No printers configured"
+msgstr "Нет настроенных принтеров"
+
+msgid "Pages to print"
+msgstr "Страницы для печати"
+
+msgid "All pages"
+msgstr "Все страницы"
+
+msgid "Even pages"
+msgstr "Чётные страницы"
+
+msgid "Odd pages"
+msgstr "Нечётные страницы"
+
+msgid "Custom range"
+msgstr "Произвольный диапазон"
+
+msgid "Invalid page range"
+msgstr "Недопустимый диапазон страниц"
+
+msgid "Invalid page range; use e.g. 1-5, 8, 12-15"
+msgstr "Недопустимый диапазон страниц; используйте, например, 1-5, 8, 12-15"
+
+msgid "Advanced settings"
+msgstr "Дополнительные настройки"
+
+msgid "Scale (%)"
+msgstr "Масштаб (%)"
+
+msgid "Margins (mm)"
+msgstr "Поля (мм)"
+
+msgid "Center content"
+msgstr "Центрировать содержимое"
+
+msgid "Color mode"
+msgstr "Цветовой режим"
+
+msgid "Color"
+msgstr "Цветная печать"
+
+msgid "Grayscale"
+msgstr "Оттенки серого"
+
+msgid "Print quality"
+msgstr "Качество печати"
+
+msgid "Printer default"
+msgstr "По умолчанию для принтера"
+
+msgid "Draft"
+msgstr "Черновик"
+
+msgid "Normal quality"
+msgstr "Обычное качество"
+
+msgid "High quality"
+msgstr "Высокое качество"
+
+msgid "Select a PDF and printer to begin"
+msgstr "Выберите PDF и принтер, чтобы начать"
+
+msgid "Step 1 of 3: Print the front sides"
+msgstr "Шаг 1 из 3: печать лицевых сторон"
+
+msgid "Step 2 of 3: Reload paper and confirm"
+msgstr "Шаг 2 из 3: повторно загрузите бумагу и подтвердите"
+
+msgid "Step 3 of 3: Print the back sides"
+msgstr "Шаг 3 из 3: печать оборотных сторон"
+
+msgid "Only front sides are needed"
+msgstr "Требуется печать только лицевых сторон"
+
+msgid "Paper reloaded and printer has finished"
+msgstr "Бумага загружена повторно, принтер завершил печать"
+
+msgid "3. Print backs"
+msgstr "3. Печатать оборотные стороны"
+
+msgid "Paper reload orientation (calibrate first)"
+msgstr "Ориентация при повторной загрузке бумаги (сначала выполните калибровку)"
+
+msgid "Not calibrated"
+msgstr "Не откалибровано"
+
+msgid "Top edge first"
+msgstr "Верхним краем вперёд"
+
+msgid "Bottom edge first"
+msgstr "Нижним краем вперёд"
+
+msgid "Save calibration for printer"
+msgstr "Сохранить калибровку принтера"
+
+msgid "Calibration saved for this printer"
+msgstr "Калибровка для этого принтера сохранена"
+
+msgid "Could not save calibration"
+msgstr "Не удалось сохранить калибровку"
+
+msgid "After the front pass finishes, reload the stack with its top edge entering first, as verified by calibration."
+msgstr "После завершения печати лицевых сторон повторно загрузите стопку верхним краем вперёд, как установлено при калибровке."
+
+msgid "After the front pass finishes, reload the stack with its bottom edge entering first, as verified by calibration."
+msgstr "После завершения печати лицевых сторон повторно загрузите стопку нижним краем вперёд, как установлено при калибровке."
+
+msgid "Paper orientation is not calibrated. Use the front/back calibration sheets before printing a large job."
+msgstr "Ориентация бумаги не откалибрована. Перед печатью большого задания используйте листы калибровки лицевой и оборотной сторон."
+
+msgid "Virtual printer"
+msgstr "Виртуальный принтер"
+
+msgid "Virtual printer installed; receiver running."
+msgstr "Виртуальный принтер установлен; служба приёма запущена."
+
+msgid "Virtual printer installed; receiver stopped."
+msgstr "Виртуальный принтер установлен; служба приёма остановлена."
+
+msgid "Install the virtual printer to receive documents from other applications."
+msgstr "Установите виртуальный принтер для получения документов из других приложений."
+
+msgid "Repair"
+msgstr "Восстановить"
+
+msgid "Install"
+msgstr "Установить"
+
+msgid "Remove"
+msgstr "Удалить"
+
+msgid "Close"
+msgstr "Закрыть"
+
+msgid "Configuration completed."
+msgstr "Настройка завершена."
+
+msgid "Configuration failed or authorization was cancelled."
+msgstr "Ошибка настройки или авторизация отменена."
+
+msgid "Save preferences"
+msgstr "Сохранить настройки"
+
+msgid "Could not save preferences"
+msgstr "Не удалось сохранить настройки"
+
+msgid "Printing preferences saved"
+msgstr "Настройки печати сохранены"
+
+msgid "Printing profiles"
+msgstr "Профили печати"
+
+msgid "Select an existing profile or enter a new name."
+msgstr "Выберите существующий профиль или введите новое имя."
+
+msgid "Profile name"
+msgstr "Имя профиля"
+
+msgid "Load profile"
+msgstr "Загрузить профиль"
+
+msgid "Save profile"
+msgstr "Сохранить профиль"
+
+msgid "Delete profile"
+msgstr "Удалить профиль"
+
+msgid "Invalid profile name"
+msgstr "Недопустимое имя профиля"
+
+msgid "Profile saved"
+msgstr "Профиль сохранён"
+
+msgid "Profile loaded"
+msgstr "Профиль загружен"
+
+msgid "Could not load profile"
+msgstr "Не удалось загрузить профиль"
+
+msgid "Profile deleted"
+msgstr "Профиль удалён"
+
+msgid "Could not delete profile"
+msgstr "Не удалось удалить профиль"
+
+msgid "General settings"
+msgstr "Общие настройки"
+
+msgid "Choose the application appearance."
+msgstr "Выберите внешний вид приложения."
+
+msgid "System theme"
+msgstr "Системная тема"
+
+msgid "Light theme"
+msgstr "Светлая тема"
+
+msgid "Dark theme"
+msgstr "Тёмная тема"
+
+msgid "Reset printing defaults"
+msgstr "Сбросить настройки печати"
+
+msgid "Remove saved printing defaults? Named profiles and calibration will be kept. Reopen the application to use factory defaults."
+msgstr "Удалить сохранённые настройки печати? Именованные профили и калибровка будут сохранены. Перезапустите приложение для использования заводских настроек."
+
+msgid "Printing defaults reset; reopen the application."
+msgstr "Настройки печати сброшены; перезапустите приложение."

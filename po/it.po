@@ -402,3 +402,12 @@ msgstr "Rimuovere le impostazioni di stampa salvate? I profili con nome e la cal
 
 msgid "Printing defaults reset; reopen the application."
 msgstr "Impostazioni di stampa ripristinate; riapri l’applicazione."
+
+msgid "Language"
+msgstr "Lingua"
+
+msgid "System language"
+msgstr "Lingua di sistema"
+
+msgid "Language changed; reopen the application."
+msgstr "Lingua modificata; riavviare l’applicazione."

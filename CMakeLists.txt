@@ -39,3 +39,7 @@ install(TARGETS linux-print-studio RUNTIME DESTINATION bin)
 
 install(FILES data/io.github.ffabiomc.LinuxPrintStudio.desktop DESTINATION "${CMAKE_INSTALL_DATADIR}/applications")
 install(FILES data/io.github.ffabiomc.LinuxPrintStudio.svg DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps")
+
+set(LPS_CUPS_BACKEND_DIR "lib/cups/backend" CACHE STRING "CUPS backend directory relative to prefix")
+install(PROGRAMS scripts/lps-virtual-printer DESTINATION bin)
+install(FILES scripts/lps DESTINATION "${LPS_CUPS_BACKEND_DIR}" PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)

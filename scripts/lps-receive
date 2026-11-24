@@ -1,0 +1,40 @@
+#!/usr/bin/python3
+import os
+import pathlib
+import stat
+import subprocess
+import time
+import tempfile
+import shutil
+
+uid = os.getuid()
+if uid == 0:
+    raise SystemExit(1)
+base = pathlib.Path('/var/spool/cups-pdf/lps-delivery')
+runtime = os.environ['XDG_RUNTIME_DIR']
+while True:
+    try:
+        for folder in sorted(base.glob(str(uid) + '-job-*')):
+            try:
+                info = folder.lstat()
+                if not stat.S_ISDIR(info.st_mode) or info.st_uid != uid or info.st_mode & 0o077:
+                    continue
+                source = folder / 'document.pdf'
+                fd = os.open(source, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+                with os.fdopen(fd, 'rb') as stream:
+                    info = os.fstat(stream.fileno())
+                    if not stat.S_ISREG(info.st_mode) or info.st_uid != uid or info.st_size > 512 * 1024 * 1024:
+                        continue
+                    with tempfile.TemporaryDirectory(prefix='lps-print-', dir=runtime) as work:
+                        target = pathlib.Path(work) / 'document.pdf'
+                        with target.open('wb') as out:
+                            shutil.copyfileobj(stream, out)
+                        # Keep the PDF available until the application exits.
+                        result = subprocess.run(['/usr/bin/linux-print-studio', str(target)])
+                        if result.returncode == 0:
+                            source.unlink()
+            except (OSError, subprocess.SubprocessError) as error:
+                print(error, flush=True)
+    except OSError as error:
+        print(error, flush=True)
+    time.sleep(3)

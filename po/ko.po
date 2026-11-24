@@ -402,3 +402,12 @@ msgstr "저장된 인쇄 기본 설정을 삭제하시겠습니까? 이름이 �
 
 msgid "Printing defaults reset; reopen the application."
 msgstr "인쇄 기본 설정이 초기화되었습니다. 애플리케이션을 다시 여세요."
+
+msgid "Language"
+msgstr "언어"
+
+msgid "System language"
+msgstr "시스템 언어"
+
+msgid "Language changed; reopen the application."
+msgstr "언어가 변경되었습니다. 앱을 다시 시작하세요."

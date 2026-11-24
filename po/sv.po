@@ -1,0 +1,404 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: sv\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Linux Print Studio"
+msgstr "Linux Print Studio"
+
+msgid "Open PDF"
+msgstr "Öppna PDF"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Booklet"
+msgstr "Häfte"
+
+msgid "2 pages / sheet"
+msgstr "2 sidor per ark"
+
+msgid "4 pages / sheet"
+msgstr "4 sidor per ark"
+
+msgid "6 pages / sheet"
+msgstr "6 sidor per ark"
+
+msgid "9 pages / sheet"
+msgstr "9 sidor per ark"
+
+msgid "16 pages / sheet"
+msgstr "16 sidor per ark"
+
+msgid "Automatic"
+msgstr "Automatiskt"
+
+msgid "Portrait"
+msgstr "Stående"
+
+msgid "Landscape"
+msgstr "Liggande"
+
+msgid "A4"
+msgstr "A4"
+
+msgid "Letter"
+msgstr "Letter"
+
+msgid "Legal"
+msgstr "Legal"
+
+msgid "One-sided"
+msgstr "Enkelsidigt"
+
+msgid "Automatic (long edge)"
+msgstr "Automatiskt (långsida)"
+
+msgid "Automatic (short edge)"
+msgstr "Automatiskt (kortsida)"
+
+msgid "Manual (two passes)"
+msgstr "Manuellt (två omgångar)"
+
+msgid "All sheets"
+msgstr "Alla ark"
+
+msgid "Front pass"
+msgstr "Skriv ut framsidor"
+
+msgid "Back pass"
+msgstr "Skriv ut baksidor"
+
+msgid "Page layout"
+msgstr "Sidlayout"
+
+msgid "Orientation"
+msgstr "Orientering"
+
+msgid "Paper size"
+msgstr "Pappersstorlek"
+
+msgid "Printer"
+msgstr "Skrivare"
+
+msgid "Copies"
+msgstr "Kopior"
+
+msgid "Duplex mode"
+msgstr "Dubbelsidig utskrift"
+
+msgid "Reverse back-side order"
+msgstr "Omvänd ordning för baksidor"
+
+msgid "1. Print fronts"
+msgstr "1. Skriv ut framsidor"
+
+msgid "2. Print backs (after reloading paper)"
+msgstr "2. Skriv ut baksidor (efter omladdning av papper)"
+
+msgid "Calibration: print front"
+msgstr "Kalibrering: skriv ut framsidan"
+
+msgid "Calibration: print back"
+msgstr "Kalibrering: skriv ut baksidan"
+
+msgid "Export PDF"
+msgstr "Exportera PDF"
+
+msgid "Print"
+msgstr "Skriv ut"
+
+msgid "Previous"
+msgstr "Föregående"
+
+msgid "Next"
+msgstr "Nästa"
+
+msgid "No document"
+msgstr "Inget dokument"
+
+msgid "Open a PDF to begin"
+msgstr "Öppna en PDF för att börja"
+
+msgid "No sides in this pass"
+msgstr "Inga sidor att skriva ut i denna omgång"
+
+msgid "Front"
+msgstr "Framsida"
+
+msgid "Back"
+msgstr "Baksida"
+
+msgid "Sheet"
+msgstr "Ark"
+
+msgid "Open a PDF first"
+msgstr "Öppna en PDF först"
+
+msgid "Select a printer"
+msgstr "Välj en skrivare"
+
+msgid "No back sides required"
+msgstr "Inga baksidor behöver skrivas ut"
+
+msgid "Invalid path"
+msgstr "Ogiltig sökväg"
+
+msgid "Could not open PDF"
+msgstr "Kunde inte öppna PDF"
+
+msgid "PDF documents"
+msgstr "PDF-dokument"
+
+msgid "Open"
+msgstr "Öppna"
+
+msgid "Cancel"
+msgstr "Avbryt"
+
+msgid "Manual duplex: click Print fronts first, then reload paper and click Print backs"
+msgstr "Manuell dubbelsidig utskrift: skriv först ut framsidorna, lägg tillbaka papperet och skriv sedan ut baksidorna"
+
+msgid "Print job submitted"
+msgstr "Utskriftsjobb skickat"
+
+msgid "Back sides submitted; check paper orientation"
+msgstr "Baksidor skickade till skrivaren; kontrollera papperets orientering"
+
+msgid "Open a PDF to preview and configure printing"
+msgstr "Öppna en PDF för att förhandsgranska och konfigurera utskriften"
+
+msgid "Only local PDF files are supported"
+msgstr "Endast lokala PDF-filer stöds"
+
+msgid "Drop a PDF file"
+msgstr "Släpp en PDF-fil här"
+
+msgid "Zoom"
+msgstr "Zoom"
+
+msgid "Fit page"
+msgstr "Anpassa till sidan"
+
+msgid "Fit width"
+msgstr "Anpassa till bredden"
+
+msgid "pages"
+msgstr "sidor"
+
+msgid "sheets"
+msgstr "ark"
+
+msgid "Refresh printers"
+msgstr "Uppdatera skrivarlistan"
+
+msgid "No printers configured"
+msgstr "Inga skrivare konfigurerade"
+
+msgid "Pages to print"
+msgstr "Sidor att skriva ut"
+
+msgid "All pages"
+msgstr "Alla sidor"
+
+msgid "Even pages"
+msgstr "Jämna sidor"
+
+msgid "Odd pages"
+msgstr "Udda sidor"
+
+msgid "Custom range"
+msgstr "Anpassat sidintervall"
+
+msgid "Invalid page range"
+msgstr "Ogiltigt sidintervall"
+
+msgid "Invalid page range; use e.g. 1-5, 8, 12-15"
+msgstr "Ogiltigt sidintervall; använd exempelvis 1-5, 8, 12-15"
+
+msgid "Advanced settings"
+msgstr "Avancerade inställningar"
+
+msgid "Scale (%)"
+msgstr "Skala (%)"
+
+msgid "Margins (mm)"
+msgstr "Marginaler (mm)"
+
+msgid "Center content"
+msgstr "Centrera innehåll"
+
+msgid "Color mode"
+msgstr "Färgläge"
+
+msgid "Color"
+msgstr "Färg"
+
+msgid "Grayscale"
+msgstr "Gråskala"
+
+msgid "Print quality"
+msgstr "Utskriftskvalitet"
+
+msgid "Printer default"
+msgstr "Skrivarens standardinställning"
+
+msgid "Draft"
+msgstr "Utkast"
+
+msgid "Normal quality"
+msgstr "Normal kvalitet"
+
+msgid "High quality"
+msgstr "Hög kvalitet"
+
+msgid "Select a PDF and printer to begin"
+msgstr "Välj en PDF och en skrivare för att börja"
+
+msgid "Step 1 of 3: Print the front sides"
+msgstr "Steg 1 av 3: skriv ut framsidorna"
+
+msgid "Step 2 of 3: Reload paper and confirm"
+msgstr "Steg 2 av 3: lägg tillbaka papperet och bekräfta"
+
+msgid "Step 3 of 3: Print the back sides"
+msgstr "Steg 3 av 3: skriv ut baksidorna"
+
+msgid "Only front sides are needed"
+msgstr "Endast framsidorna behöver skrivas ut"
+
+msgid "Paper reloaded and printer has finished"
+msgstr "Papperet har lagts tillbaka och skrivaren är klar"
+
+msgid "3. Print backs"
+msgstr "3. Skriv ut baksidor"
+
+msgid "Paper reload orientation (calibrate first)"
+msgstr "Papperets orientering vid omladdning (kalibrera först)"
+
+msgid "Not calibrated"
+msgstr "Inte kalibrerad"
+
+msgid "Top edge first"
+msgstr "Överkanten först"
+
+msgid "Bottom edge first"
+msgstr "Underkanten först"
+
+msgid "Save calibration for printer"
+msgstr "Spara skrivarens kalibrering"
+
+msgid "Calibration saved for this printer"
+msgstr "Kalibrering sparad för denna skrivare"
+
+msgid "Could not save calibration"
+msgstr "Kunde inte spara kalibreringen"
+
+msgid "After the front pass finishes, reload the stack with its top edge entering first, as verified by calibration."
+msgstr "När framsidorna har skrivits ut, lägg tillbaka pappersbunten med överkanten först enligt kalibreringen."
+
+msgid "After the front pass finishes, reload the stack with its bottom edge entering first, as verified by calibration."
+msgstr "När framsidorna har skrivits ut, lägg tillbaka pappersbunten med underkanten först enligt kalibreringen."
+
+msgid "Paper orientation is not calibrated. Use the front/back calibration sheets before printing a large job."
+msgstr "Papperets orientering är inte kalibrerad. Använd kalibreringsarken för fram- och baksida före en större utskrift."
+
+msgid "Virtual printer"
+msgstr "Virtuell skrivare"
+
+msgid "Virtual printer installed; receiver running."
+msgstr "Virtuell skrivare installerad; mottagartjänsten körs."
+
+msgid "Virtual printer installed; receiver stopped."
+msgstr "Virtuell skrivare installerad; mottagartjänsten är stoppad."
+
+msgid "Install the virtual printer to receive documents from other applications."
+msgstr "Installera den virtuella skrivaren för att ta emot dokument från andra program."
+
+msgid "Repair"
+msgstr "Reparera"
+
+msgid "Install"
+msgstr "Installera"
+
+msgid "Remove"
+msgstr "Ta bort"
+
+msgid "Close"
+msgstr "Stäng"
+
+msgid "Configuration completed."
+msgstr "Konfigurationen är klar."
+
+msgid "Configuration failed or authorization was cancelled."
+msgstr "Konfigurationen misslyckades eller behörighetskontrollen avbröts."
+
+msgid "Save preferences"
+msgstr "Spara inställningar"
+
+msgid "Could not save preferences"
+msgstr "Kunde inte spara inställningarna"
+
+msgid "Printing preferences saved"
+msgstr "Utskriftsinställningar sparade"
+
+msgid "Printing profiles"
+msgstr "Utskriftsprofiler"
+
+msgid "Select an existing profile or enter a new name."
+msgstr "Välj en befintlig profil eller ange ett nytt namn."
+
+msgid "Profile name"
+msgstr "Profilnamn"
+
+msgid "Load profile"
+msgstr "Läs in profil"
+
+msgid "Save profile"
+msgstr "Spara profil"
+
+msgid "Delete profile"
+msgstr "Ta bort profil"
+
+msgid "Invalid profile name"
+msgstr "Ogiltigt profilnamn"
+
+msgid "Profile saved"
+msgstr "Profil sparad"
+
+msgid "Profile loaded"
+msgstr "Profil inläst"
+
+msgid "Could not load profile"
+msgstr "Kunde inte läsa in profilen"
+
+msgid "Profile deleted"
+msgstr "Profil borttagen"
+
+msgid "Could not delete profile"
+msgstr "Kunde inte ta bort profilen"
+
+msgid "General settings"
+msgstr "Allmänna inställningar"
+
+msgid "Choose the application appearance."
+msgstr "Välj programmets utseende."
+
+msgid "System theme"
+msgstr "Systemtema"
+
+msgid "Light theme"
+msgstr "Ljust tema"
+
+msgid "Dark theme"
+msgstr "Mörkt tema"
+
+msgid "Reset printing defaults"
+msgstr "Återställ standardinställningar för utskrift"
+
+msgid "Remove saved printing defaults? Named profiles and calibration will be kept. Reopen the application to use factory defaults."
+msgstr "Ta bort sparade standardinställningar för utskrift? Namngivna profiler och kalibrering behålls. Starta om programmet för att använda fabriksinställningarna."
+
+msgid "Printing defaults reset; reopen the application."
+msgstr "Standardinställningarna för utskrift har återställts; starta om programmet."

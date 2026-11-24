@@ -5,6 +5,7 @@ import re
 import stat
 import sys
 import tempfile
+import json
 
 
 def main():
@@ -48,11 +49,18 @@ def main():
                         raise ValueError('PDF exceeds 512 MiB')
                     target.write(chunk)
                 os.fchown(target.fileno(), uid, user.pw_gid)
+            with open(os.path.join(directory, 'title.json'), 'x', encoding='utf-8') as metadata:
+                os.fchmod(metadata.fileno(), 0o600)
+                json.dump({'title': sys.argv[3][:240]}, metadata)
+                os.fchown(metadata.fileno(), uid, user.pw_gid)
             os.chown(directory, uid, user.pw_gid)
             os.rename(directory, os.path.join(base, str(uid) + '-' + os.path.basename(directory)))
         except Exception:
             if os.path.exists(path):
                 os.unlink(path)
+            metadata_path = os.path.join(directory, 'title.json')
+            if os.path.exists(metadata_path):
+                os.unlink(metadata_path)
             os.rmdir(directory)
             raise
     return 0

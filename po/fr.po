@@ -1,0 +1,404 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "Linux Print Studio"
+msgstr "Linux Print Studio"
+
+msgid "Open PDF"
+msgstr "Ouvrir un PDF"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Booklet"
+msgstr "Livret"
+
+msgid "2 pages / sheet"
+msgstr "2 pages par feuille"
+
+msgid "4 pages / sheet"
+msgstr "4 pages par feuille"
+
+msgid "6 pages / sheet"
+msgstr "6 pages par feuille"
+
+msgid "9 pages / sheet"
+msgstr "9 pages par feuille"
+
+msgid "16 pages / sheet"
+msgstr "16 pages par feuille"
+
+msgid "Automatic"
+msgstr "Automatique"
+
+msgid "Portrait"
+msgstr "Portrait"
+
+msgid "Landscape"
+msgstr "Paysage"
+
+msgid "A4"
+msgstr "A4"
+
+msgid "Letter"
+msgstr "Lettre"
+
+msgid "Legal"
+msgstr "Legal"
+
+msgid "One-sided"
+msgstr "Recto uniquement"
+
+msgid "Automatic (long edge)"
+msgstr "Automatique (bord long)"
+
+msgid "Automatic (short edge)"
+msgstr "Automatique (bord court)"
+
+msgid "Manual (two passes)"
+msgstr "Manuel (deux passages)"
+
+msgid "All sheets"
+msgstr "Toutes les feuilles"
+
+msgid "Front pass"
+msgstr "Impression des rectos"
+
+msgid "Back pass"
+msgstr "Impression des versos"
+
+msgid "Page layout"
+msgstr "Mise en page"
+
+msgid "Orientation"
+msgstr "Orientation"
+
+msgid "Paper size"
+msgstr "Format du papier"
+
+msgid "Printer"
+msgstr "Imprimante"
+
+msgid "Copies"
+msgstr "Copies"
+
+msgid "Duplex mode"
+msgstr "Mode recto verso"
+
+msgid "Reverse back-side order"
+msgstr "Inverser l’ordre des versos"
+
+msgid "1. Print fronts"
+msgstr "1. Imprimer les rectos"
+
+msgid "2. Print backs (after reloading paper)"
+msgstr "2. Imprimer les versos (après rechargement du papier)"
+
+msgid "Calibration: print front"
+msgstr "Calibrage : imprimer le recto"
+
+msgid "Calibration: print back"
+msgstr "Calibrage : imprimer le verso"
+
+msgid "Export PDF"
+msgstr "Exporter en PDF"
+
+msgid "Print"
+msgstr "Imprimer"
+
+msgid "Previous"
+msgstr "Précédent"
+
+msgid "Next"
+msgstr "Suivant"
+
+msgid "No document"
+msgstr "Aucun document"
+
+msgid "Open a PDF to begin"
+msgstr "Ouvrez un PDF pour commencer"
+
+msgid "No sides in this pass"
+msgstr "Aucune face pour ce passage"
+
+msgid "Front"
+msgstr "Recto"
+
+msgid "Back"
+msgstr "Verso"
+
+msgid "Sheet"
+msgstr "Feuille"
+
+msgid "Open a PDF first"
+msgstr "Ouvrez d’abord un PDF"
+
+msgid "Select a printer"
+msgstr "Sélectionnez une imprimante"
+
+msgid "No back sides required"
+msgstr "Aucun verso à imprimer"
+
+msgid "Invalid path"
+msgstr "Chemin non valide"
+
+msgid "Could not open PDF"
+msgstr "Impossible d’ouvrir le PDF"
+
+msgid "PDF documents"
+msgstr "Documents PDF"
+
+msgid "Open"
+msgstr "Ouvrir"
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Manual duplex: click Print fronts first, then reload paper and click Print backs"
+msgstr "Recto verso manuel : imprimez les rectos, rechargez le papier, puis imprimez les versos"
+
+msgid "Print job submitted"
+msgstr "Travail d’impression envoyé"
+
+msgid "Back sides submitted; check paper orientation"
+msgstr "Versos envoyés ; vérifiez l’orientation du papier"
+
+msgid "Open a PDF to preview and configure printing"
+msgstr "Ouvrez un PDF pour prévisualiser et configurer l’impression"
+
+msgid "Only local PDF files are supported"
+msgstr "Seuls les fichiers PDF locaux sont pris en charge"
+
+msgid "Drop a PDF file"
+msgstr "Déposez un fichier PDF"
+
+msgid "Zoom"
+msgstr "Zoom"
+
+msgid "Fit page"
+msgstr "Ajuster à la page"
+
+msgid "Fit width"
+msgstr "Ajuster à la largeur"
+
+msgid "pages"
+msgstr "pages"
+
+msgid "sheets"
+msgstr "feuilles"
+
+msgid "Refresh printers"
+msgstr "Actualiser les imprimantes"
+
+msgid "No printers configured"
+msgstr "Aucune imprimante configurée"
+
+msgid "Pages to print"
+msgstr "Pages à imprimer"
+
+msgid "All pages"
+msgstr "Toutes les pages"
+
+msgid "Even pages"
+msgstr "Pages paires"
+
+msgid "Odd pages"
+msgstr "Pages impaires"
+
+msgid "Custom range"
+msgstr "Plage personnalisée"
+
+msgid "Invalid page range"
+msgstr "Plage de pages non valide"
+
+msgid "Invalid page range; use e.g. 1-5, 8, 12-15"
+msgstr "Plage de pages non valide ; utilisez par exemple 1-5, 8, 12-15"
+
+msgid "Advanced settings"
+msgstr "Paramètres avancés"
+
+msgid "Scale (%)"
+msgstr "Échelle (%)"
+
+msgid "Margins (mm)"
+msgstr "Marges (mm)"
+
+msgid "Center content"
+msgstr "Centrer le contenu"
+
+msgid "Color mode"
+msgstr "Mode couleur"
+
+msgid "Color"
+msgstr "Couleur"
+
+msgid "Grayscale"
+msgstr "Niveaux de gris"
+
+msgid "Print quality"
+msgstr "Qualité d’impression"
+
+msgid "Printer default"
+msgstr "Paramètre par défaut de l’imprimante"
+
+msgid "Draft"
+msgstr "Brouillon"
+
+msgid "Normal quality"
+msgstr "Qualité normale"
+
+msgid "High quality"
+msgstr "Haute qualité"
+
+msgid "Select a PDF and printer to begin"
+msgstr "Sélectionnez un PDF et une imprimante pour commencer"
+
+msgid "Step 1 of 3: Print the front sides"
+msgstr "Étape 1 sur 3 : imprimer les rectos"
+
+msgid "Step 2 of 3: Reload paper and confirm"
+msgstr "Étape 2 sur 3 : recharger le papier et confirmer"
+
+msgid "Step 3 of 3: Print the back sides"
+msgstr "Étape 3 sur 3 : imprimer les versos"
+
+msgid "Only front sides are needed"
+msgstr "Seuls les rectos sont nécessaires"
+
+msgid "Paper reloaded and printer has finished"
+msgstr "Le papier est rechargé et l’imprimante a terminé"
+
+msgid "3. Print backs"
+msgstr "3. Imprimer les versos"
+
+msgid "Paper reload orientation (calibrate first)"
+msgstr "Orientation du papier au rechargement (calibrer d’abord)"
+
+msgid "Not calibrated"
+msgstr "Non calibré"
+
+msgid "Top edge first"
+msgstr "Bord supérieur en premier"
+
+msgid "Bottom edge first"
+msgstr "Bord inférieur en premier"
+
+msgid "Save calibration for printer"
+msgstr "Enregistrer le calibrage de l’imprimante"
+
+msgid "Calibration saved for this printer"
+msgstr "Calibrage enregistré pour cette imprimante"
+
+msgid "Could not save calibration"
+msgstr "Impossible d’enregistrer le calibrage"
+
+msgid "After the front pass finishes, reload the stack with its top edge entering first, as verified by calibration."
+msgstr "Après l’impression des rectos, rechargez la pile en introduisant le bord supérieur en premier, conformément au calibrage."
+
+msgid "After the front pass finishes, reload the stack with its bottom edge entering first, as verified by calibration."
+msgstr "Après l’impression des rectos, rechargez la pile en introduisant le bord inférieur en premier, conformément au calibrage."
+
+msgid "Paper orientation is not calibrated. Use the front/back calibration sheets before printing a large job."
+msgstr "L’orientation du papier n’est pas calibrée. Utilisez les feuilles de calibrage recto verso avant une impression volumineuse."
+
+msgid "Virtual printer"
+msgstr "Imprimante virtuelle"
+
+msgid "Virtual printer installed; receiver running."
+msgstr "Imprimante virtuelle installée ; récepteur en cours d’exécution."
+
+msgid "Virtual printer installed; receiver stopped."
+msgstr "Imprimante virtuelle installée ; récepteur arrêté."
+
+msgid "Install the virtual printer to receive documents from other applications."
+msgstr "Installez l’imprimante virtuelle pour recevoir des documents provenant d’autres applications."
+
+msgid "Repair"
+msgstr "Réparer"
+
+msgid "Install"
+msgstr "Installer"
+
+msgid "Remove"
+msgstr "Supprimer"
+
+msgid "Close"
+msgstr "Fermer"
+
+msgid "Configuration completed."
+msgstr "Configuration terminée."
+
+msgid "Configuration failed or authorization was cancelled."
+msgstr "Échec de la configuration ou autorisation annulée."
+
+msgid "Save preferences"
+msgstr "Enregistrer les préférences"
+
+msgid "Could not save preferences"
+msgstr "Impossible d’enregistrer les préférences"
+
+msgid "Printing preferences saved"
+msgstr "Préférences d’impression enregistrées"
+
+msgid "Printing profiles"
+msgstr "Profils d’impression"
+
+msgid "Select an existing profile or enter a new name."
+msgstr "Sélectionnez un profil existant ou saisissez un nouveau nom."
+
+msgid "Profile name"
+msgstr "Nom du profil"
+
+msgid "Load profile"
+msgstr "Charger le profil"
+
+msgid "Save profile"
+msgstr "Enregistrer le profil"
+
+msgid "Delete profile"
+msgstr "Supprimer le profil"
+
+msgid "Invalid profile name"
+msgstr "Nom de profil non valide"
+
+msgid "Profile saved"
+msgstr "Profil enregistré"
+
+msgid "Profile loaded"
+msgstr "Profil chargé"
+
+msgid "Could not load profile"
+msgstr "Impossible de charger le profil"
+
+msgid "Profile deleted"
+msgstr "Profil supprimé"
+
+msgid "Could not delete profile"
+msgstr "Impossible de supprimer le profil"
+
+msgid "General settings"
+msgstr "Paramètres généraux"
+
+msgid "Choose the application appearance."
+msgstr "Choisissez l’apparence de l’application."
+
+msgid "System theme"
+msgstr "Thème du système"
+
+msgid "Light theme"
+msgstr "Thème clair"
+
+msgid "Dark theme"
+msgstr "Thème sombre"
+
+msgid "Reset printing defaults"
+msgstr "Réinitialiser les paramètres d’impression"
+
+msgid "Remove saved printing defaults? Named profiles and calibration will be kept. Reopen the application to use factory defaults."
+msgstr "Supprimer les paramètres d’impression enregistrés ? Les profils nommés et le calibrage seront conservés. Rouvrez l’application pour utiliser les paramètres d’usine."
+
+msgid "Printing defaults reset; reopen the application."
+msgstr "Paramètres d’impression réinitialisés ; rouvrez l’application."

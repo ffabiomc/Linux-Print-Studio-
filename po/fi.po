@@ -402,3 +402,12 @@ msgstr "Poistetaanko tallennetut tulostuksen oletusasetukset? Nimetyt profiilit 
 
 msgid "Printing defaults reset; reopen the application."
 msgstr "Tulostuksen oletusasetukset palautettu; käynnistä sovellus uudelleen."
+
+msgid "Language"
+msgstr "Kieli"
+
+msgid "System language"
+msgstr "Järjestelmän kieli"
+
+msgid "Language changed; reopen the application."
+msgstr "Kieli vaihdettu; käynnistä sovellus uudelleen."

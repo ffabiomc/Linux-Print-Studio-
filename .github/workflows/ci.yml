@@ -12,13 +12,15 @@ jobs:
       - name: Dependencies
         run: |
           sudo timeout --signal=TERM --kill-after=10s 180s apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update
-          sudo timeout --signal=TERM --kill-after=10s 600s apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y --no-install-recommends cmake ninja-build g++ pkg-config libgtk-4-dev libadwaita-1-dev libpoppler-glib-dev libcairo2-dev libcups2-dev libgnutls28-dev libavahi-client-dev
+          sudo timeout --signal=TERM --kill-after=10s 600s apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 install -y --no-install-recommends cmake ninja-build g++ pkg-config libgtk-4-dev libadwaita-1-dev libpoppler-glib-dev libcairo2-dev libcups2-dev libgnutls28-dev libavahi-client-dev gettext desktop-file-utils
       - name: Configure
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
       - name: Build
         run: cmake --build build --parallel 2
       - name: Test
-        run: ctest --test-dir build --output-on-failure
+        run: |
+          ctest --test-dir build --output-on-failure
+          desktop-file-validate data/io.github.ffabiomc.LinuxPrintStudio.desktop
       - name: Package Debian
         run: |
           mkdir -p pkg/DEBIAN
@@ -37,13 +39,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Fedora dependencies
-        run: dnf install -y gcc-c++ cmake ninja-build pkgconf-pkg-config gtk4-devel libadwaita-devel poppler-glib-devel cairo-devel cups-devel rpm-build gettext
+        run: dnf install -y gcc-c++ cmake ninja-build pkgconf-pkg-config gtk4-devel libadwaita-devel poppler-glib-devel cairo-devel cups-devel rpm-build gettext desktop-file-utils
       - name: Configure
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
       - name: Build
         run: cmake --build build --parallel 2
       - name: Test
-        run: ctest --test-dir build --output-on-failure
+        run: |
+          ctest --test-dir build --output-on-failure
+          desktop-file-validate data/io.github.ffabiomc.LinuxPrintStudio.desktop
       - name: Package RPM
         run: |
           mkdir -p staging
@@ -64,7 +68,12 @@ jobs:
           install -m 0755 %{_topdir}/../../staging/usr/bin/linux-print-studio %{buildroot}/usr/bin/linux-print-studio
           mkdir -p %{buildroot}/usr/share/locale/pt_BR/LC_MESSAGES
           install -m 0644 %{_topdir}/../../staging/usr/share/locale/pt_BR/LC_MESSAGES/linux-print-studio.mo %{buildroot}/usr/share/locale/pt_BR/LC_MESSAGES/linux-print-studio.mo
+          mkdir -p %{buildroot}/usr/share/applications %{buildroot}/usr/share/icons/hicolor/scalable/apps
+          install -m 0644 %{_topdir}/../../staging/usr/share/applications/io.github.ffabiomc.LinuxPrintStudio.desktop %{buildroot}/usr/share/applications/
+          install -m 0644 %{_topdir}/../../staging/usr/share/icons/hicolor/scalable/apps/io.github.ffabiomc.LinuxPrintStudio.svg %{buildroot}/usr/share/icons/hicolor/scalable/apps/
           %files
+          /usr/share/applications/io.github.ffabiomc.LinuxPrintStudio.desktop
+          /usr/share/icons/hicolor/scalable/apps/io.github.ffabiomc.LinuxPrintStudio.svg
           /usr/bin/linux-print-studio
           /usr/share/locale/pt_BR/LC_MESSAGES/linux-print-studio.mo
           SPEC

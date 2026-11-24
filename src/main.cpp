@@ -725,7 +725,7 @@ static void virtual_settings(GtkButton*,gpointer data) {
         adw_message_dialog_set_response_appearance(d,"remove",ADW_RESPONSE_DESTRUCTIVE);
     }
     adw_message_dialog_set_close_response(d,"close");
-    g_signal_connect(d,"response",G_CALLBACK(+[](AdwMessageDialog* dialog,const char* response,gpointer){
+    g_signal_connect(d,"response",G_CALLBACK((+[](AdwMessageDialog* dialog,const char* response,gpointer){
         if(g_strcmp0(response,"close")==0) return;
         bool remove=g_strcmp0(response,"remove")==0;
         const char* args[]={"/usr/bin/pkexec","/usr/bin/lps-virtual-printer",remove?"remove":"install",nullptr};
@@ -741,7 +741,7 @@ static void virtual_settings(GtkButton*,gpointer data) {
         adw_message_dialog_add_response(result,"ok",tr("Close"));
         adw_message_dialog_set_close_response(result,"ok");
         gtk_window_present(GTK_WINDOW(result));
-    }),nullptr);
+    })),nullptr);
     gtk_window_present(GTK_WINDOW(d));
 }
 static void activate(GApplication* application,gpointer) {

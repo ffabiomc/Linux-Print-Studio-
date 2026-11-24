@@ -243,7 +243,7 @@ jobs:
       - name: Build native package
         shell: bash
         run: |
-          useradd -m builder
+          id -u builder >/dev/null 2>&1 || useradd -m builder
           mkdir -p /tmp/lps-build
           cp -a . /tmp/lps-build/
           cd /tmp/lps-build
@@ -272,7 +272,7 @@ jobs:
             DESTDIR="$pkgdir" cmake --install "$srcdir/build"
           }
           PKG
-          chown -R builder:builder /tmp/lps-build
+          chown -R builder:$(id -gn builder) /tmp/lps-build
           runuser -u builder -- makepkg --noconfirm
           mainpkg=$(find . -maxdepth 1 -name 'linux-print-studio-cpp-1*.pkg.tar.zst' -print -quit)
           test -n "$mainpkg"
@@ -348,7 +348,7 @@ jobs:
       - name: Build native package
         shell: bash
         run: |
-          useradd -m builder
+          id -u builder >/dev/null 2>&1 || useradd -m builder
           mkdir -p /tmp/lps-build
           cp -a . /tmp/lps-build/
           cd /tmp/lps-build
@@ -377,7 +377,7 @@ jobs:
             DESTDIR="$pkgdir" cmake --install "$srcdir/build"
           }
           PKG
-          chown -R builder:builder /tmp/lps-build
+          chown -R builder:$(id -gn builder) /tmp/lps-build
           runuser -u builder -- makepkg --noconfirm
           mainpkg=$(find . -maxdepth 1 -name 'linux-print-studio-cpp-1*.pkg.tar.zst' -print -quit)
           test -n "$mainpkg"

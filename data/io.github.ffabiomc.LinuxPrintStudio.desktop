@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Linux Print Studio
+Comment=Preview and prepare PDF documents for printing
+Comment[pt_BR]=Visualize e prepare documentos PDF para impressão
+Exec=linux-print-studio
+Icon=io.github.ffabiomc.LinuxPrintStudio
+Terminal=false
+Categories=Utility;Printing;
+StartupNotify=true

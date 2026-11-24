@@ -19,6 +19,8 @@ jobs:
         run: cmake --build build --parallel 2
       - name: Test
         run: |
+          python3 -m py_compile scripts/lps scripts/lps-receive
+          sh -n scripts/lps-virtual-printer
           ctest --test-dir build --output-on-failure
           desktop-file-validate data/io.github.ffabiomc.LinuxPrintStudio.desktop
       - name: Graphical startup smoke test
@@ -50,6 +52,8 @@ jobs:
         run: cmake --build build --parallel 2
       - name: Test
         run: |
+          python3 -m py_compile scripts/lps scripts/lps-receive
+          sh -n scripts/lps-virtual-printer
           ctest --test-dir build --output-on-failure
           desktop-file-validate data/io.github.ffabiomc.LinuxPrintStudio.desktop
       - name: Graphical startup smoke test
@@ -91,7 +95,12 @@ jobs:
           install -m 0755 %{_topdir}/../../staging/usr/bin/lps-virtual-printer %{buildroot}/usr/bin/lps-virtual-printer
           mkdir -p %{buildroot}/usr/lib/cups/backend
           install -m 0700 %{_topdir}/../../staging/usr/lib/cups/backend/lps %{buildroot}/usr/lib/cups/backend/lps
+          install -m 0755 %{_topdir}/../../staging/usr/bin/lps-receive %{buildroot}/usr/bin/lps-receive
+          mkdir -p %{buildroot}/usr/lib/systemd/user
+          install -m 0644 %{_topdir}/../../staging/usr/lib/systemd/user/lps-receive.service %{buildroot}/usr/lib/systemd/user/
           %files
+          /usr/bin/lps-receive
+          /usr/lib/systemd/user/lps-receive.service
           %attr(0700,root,root) /usr/lib/cups/backend/lps
           /usr/bin/lps-virtual-printer
           /usr/share/applications/io.github.ffabiomc.LinuxPrintStudio.desktop

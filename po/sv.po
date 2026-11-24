@@ -402,3 +402,12 @@ msgstr "Ta bort sparade standardinställningar för utskrift? Namngivna profiler
 
 msgid "Printing defaults reset; reopen the application."
 msgstr "Standardinställningarna för utskrift har återställts; starta om programmet."
+
+msgid "Language"
+msgstr "Språk"
+
+msgid "System language"
+msgstr "Systemspråk"
+
+msgid "Language changed; reopen the application."
+msgstr "Språket har ändrats; starta om programmet."

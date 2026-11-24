@@ -402,3 +402,12 @@ msgstr "Gespeicherte Druckstandards entfernen? Benannte Profile und Kalibrierung
 
 msgid "Printing defaults reset; reopen the application."
 msgstr "Druckstandards zurückgesetzt; starten Sie die Anwendung neu."
+
+msgid "Language"
+msgstr "Sprache"
+
+msgid "System language"
+msgstr "Systemsprache"
+
+msgid "Language changed; reopen the application."
+msgstr "Sprache geändert; Anwendung neu starten."

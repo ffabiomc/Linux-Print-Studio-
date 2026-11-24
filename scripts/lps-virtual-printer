@@ -1,11 +1,16 @@
 #!/bin/sh
 set -eu
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
 queue=Linux_Print_Studio
 case "${1:-}" in
   install)
     test "$(id -u)" -eq 0 || { echo "Run as administrator" >&2; exit 1; }
     test -x /usr/lib/cups/backend/lps || test -x /usr/libexec/cups/backend/lps || { echo "Linux Print Studio backend is not installed" >&2; exit 1; }
     user="${SUDO_USER:-}"
+    if test -z "$user" && test -n "${PKEXEC_UID:-}"; then
+      user=$(id -nu "$PKEXEC_UID")
+    fi
     test -n "$user" || { echo "Use sudo from your desktop user" >&2; exit 1; }
     uid=$(id -u "$user")
     test "$uid" -ge 1000

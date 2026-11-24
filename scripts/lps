@@ -1,0 +1,70 @@
+#!/usr/bin/python3
+import os
+import pwd
+import re
+import stat
+import sys
+import tempfile
+import subprocess
+
+def main():
+    if len(sys.argv) == 1:
+        print('direct lps:/local "Linux Print Studio" "Linux Print Studio"')
+        return 0
+    if len(sys.argv) not in (6, 7) or os.geteuid() != 0:
+        return 1
+    match = re.fullmatch(r'lps:/local/([0-9]+)', os.environ.get('DEVICE_URI', ''))
+    if not match:
+        return 1
+    uid = int(match.group(1))
+    if uid < 1000:
+        return 1
+    user = pwd.getpwuid(uid)
+    if sys.argv[2] != user.pw_name:
+        return 1
+    source = open(sys.argv[6], 'rb') if len(sys.argv) == 7 else sys.stdin.buffer
+    with source:
+        header = source.read(5)
+        if header != b'%PDF-':
+            print('ERROR: Only PDF print jobs are supported', file=sys.stderr)
+            return 1
+        os.initgroups(user.pw_name, user.pw_gid)
+        os.setgid(user.pw_gid)
+        os.setuid(uid)
+        runtime = '/run/user/' + str(uid)
+        info = os.stat(runtime, follow_symlinks=False)
+        if not stat.S_ISDIR(info.st_mode) or info.st_uid != uid or info.st_mode & 0o077:
+            return 1
+        directory = tempfile.mkdtemp(prefix='lps-print-', dir=runtime)
+        path = os.path.join(directory, 'document.pdf')
+        try:
+            with open(path, 'xb') as target:
+                os.chmod(path, 0o600)
+                target.write(header)
+                total = len(header)
+                while True:
+                    chunk = source.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    total += len(chunk)
+                    if total > 512 * 1024 * 1024:
+                        raise ValueError('PDF exceeds 512 MiB')
+                    target.write(chunk)
+            env = {'PATH': '/usr/bin:/bin', 'HOME': user.pw_dir,
+                   'USER': user.pw_name, 'XDG_RUNTIME_DIR': runtime,
+                   'DBUS_SESSION_BUS_ADDRESS': 'unix:path=' + runtime + '/bus'}
+            subprocess.run(['/usr/bin/systemd-run', '--user', '--collect',
+                            '/usr/bin/linux-print-studio', path],
+                           env=env, check=True, timeout=20)
+        except Exception:
+            os.unlink(path) if os.path.exists(path) else None
+            os.rmdir(directory)
+            raise
+    return 0
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main())
+    except Exception as error:
+        print('ERROR: ' + str(error), file=sys.stderr)
+        sys.exit(1)

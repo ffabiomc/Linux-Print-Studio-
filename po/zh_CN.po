@@ -402,3 +402,12 @@ msgstr "是否删除已保存的打印默认设置？已命名的方案和校准
 
 msgid "Printing defaults reset; reopen the application."
 msgstr "打印默认设置已重置；请重新打开应用程序。"
+
+msgid "Language"
+msgstr "语言"
+
+msgid "System language"
+msgstr "系统语言"
+
+msgid "Language changed; reopen the application."
+msgstr "语言已更改；请重新打开应用程序。"

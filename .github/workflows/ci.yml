@@ -53,7 +53,17 @@ jobs:
           ctest --test-dir build --output-on-failure
           desktop-file-validate data/io.github.ffabiomc.LinuxPrintStudio.desktop
       - name: Graphical startup smoke test
-        run: timeout 30s xvfb-run -a dbus-run-session -- env LPS_SMOKE_TEST=1 GSK_RENDERER=cairo ./build/linux-print-studio
+        run: |
+          Xvfb :99 -screen 0 1280x800x24 -nolisten tcp &
+          xvfb_pid=$!
+          trap 'kill "$xvfb_pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 50); do
+            test -S /tmp/.X11-unix/X99 && break
+            kill -0 "$xvfb_pid" || exit 1
+            sleep 0.2
+          done
+          test -S /tmp/.X11-unix/X99
+          timeout 30s dbus-run-session -- env DISPLAY=:99 LPS_SMOKE_TEST=1 GSK_RENDERER=cairo ./build/linux-print-studio
       - name: Package RPM
         run: |
           mkdir -p staging

@@ -176,7 +176,10 @@ jobs:
       image: opensuse/tumbleweed
     steps:
       - name: Dependencies
-        run: zypper --non-interactive install git gzip tar gcc-c++ cmake ninja pkg-config gtk4-devel libadwaita-devel libpoppler-glib-devel cairo-devel cups-devel rpm-build gettext-tools desktop-file-utils python3
+        run: |
+          zypper --non-interactive refresh
+          zypper --non-interactive dup --allow-downgrade --no-recommends
+          zypper --non-interactive install git gzip tar gcc-c++ cmake ninja pkg-config gtk4-devel libadwaita-devel libpoppler-glib-devel cairo-devel cups-devel rpm-build gettext-tools desktop-file-utils python3
       - uses: actions/checkout@v4
       - name: Build and test
         run: |

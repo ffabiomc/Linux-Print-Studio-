@@ -762,8 +762,7 @@ static void virtual_settings(GtkButton*,gpointer data) {
 static std::string preferences_path() {
     return std::string(g_get_user_config_dir())+"/linux-print-studio/preferences.ini";
 }
-static void save_preferences(GtkButton*,gpointer data) {
-    auto* s=static_cast<State*>(data);
+static bool save_settings(State* s,const std::string& path) {
     std::unique_ptr<GKeyFile,decltype(&g_key_file_free)> file(g_key_file_new(),g_key_file_free);
     const char* group="printing";
     g_key_file_set_string(file.get(),group,"printer",selected_printer_name(s).c_str());
@@ -773,16 +772,19 @@ static void save_preferences(GtkButton*,gpointer data) {
     g_key_file_set_double(file.get(),group,"scale",gtk_spin_button_get_value(GTK_SPIN_BUTTON(s->scale_control)));
     g_key_file_set_double(file.get(),group,"margin",gtk_spin_button_get_value(GTK_SPIN_BUTTON(s->margin_control)));
     g_key_file_set_boolean(file.get(),group,"center",gtk_check_button_get_active(GTK_CHECK_BUTTON(s->center_control)));
-    const auto path=preferences_path();
     if(g_mkdir_with_parents(std::filesystem::path(path).parent_path().c_str(),0700)!=0 ||
        !g_key_file_save_to_file(file.get(),path.c_str(),nullptr)) {
-        status(s,tr("Could not save preferences"));return;
+        status(s,tr("Could not save preferences"));return false;
     }
-    status(s,tr("Printing preferences saved"));
+    return true;
 }
-static void restore_preferences(State* s) {
+static void save_preferences(GtkButton*,gpointer data) {
+    auto* s=static_cast<State*>(data);
+    if(save_settings(s,preferences_path())) status(s,tr("Printing preferences saved"));
+}
+static bool restore_settings(State* s,const std::string& path) {
     std::unique_ptr<GKeyFile,decltype(&g_key_file_free)> file(g_key_file_new(),g_key_file_free);
-    if(!g_key_file_load_from_file(file.get(),preferences_path().c_str(),G_KEY_FILE_NONE,nullptr)) return;
+    if(!g_key_file_load_from_file(file.get(),path.c_str(),G_KEY_FILE_NONE,nullptr)) return false;
     const char* group="printing";
     OwnedString printer(g_key_file_get_string(file.get(),group,"printer",nullptr));
     if(printer) {
@@ -808,6 +810,62 @@ static void restore_preferences(State* s) {
     const bool center=g_key_file_get_boolean(file.get(),group,"center",&error);
     if(!error) gtk_check_button_set_active(GTK_CHECK_BUTTON(s->center_control),center);
     g_clear_error(&error);
+    return true;
+}
+static void restore_preferences(State* s) { restore_settings(s,preferences_path()); }
+static std::filesystem::path profiles_directory() {
+    return std::filesystem::path(preferences_path()).parent_path()/"profiles";
+}
+static void profiles_clicked(GtkButton*,gpointer data) {
+    auto* s=static_cast<State*>(data);
+    auto* dialog=ADW_MESSAGE_DIALOG(adw_message_dialog_new(GTK_WINDOW(s->window),tr("Printing profiles"),tr("Select an existing profile or enter a new name.")));
+    gtk_window_set_modal(GTK_WINDOW(dialog),TRUE);
+    auto* box=gtk_box_new(GTK_ORIENTATION_VERTICAL,8);
+    auto* names=gtk_string_list_new(nullptr);
+    std::error_code ec;
+    std::vector<std::string> sorted;
+    for(std::filesystem::directory_iterator it(profiles_directory(),ec),end;!ec && it!=end;it.increment(ec)) {
+        if(it->path().extension()==".ini" && it->is_regular_file(ec)) sorted.push_back(it->path().stem().string());
+    }
+    std::sort(sorted.begin(),sorted.end());
+    for(const auto& name:sorted) gtk_string_list_append(names,name.c_str());
+    auto* choices=gtk_drop_down_new(G_LIST_MODEL(names),nullptr);
+    auto* entry=gtk_entry_new();
+    gtk_entry_set_max_length(GTK_ENTRY(entry),80);
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry),tr("Profile name"));
+    gtk_box_append(GTK_BOX(box),choices);
+    gtk_box_append(GTK_BOX(box),entry);
+    g_object_set_data(G_OBJECT(dialog),"profile-entry",entry);
+    g_object_set_data(G_OBJECT(dialog),"profile-choices",choices);
+    adw_message_dialog_set_extra_child(dialog,box);
+    adw_message_dialog_add_response(dialog,"close",tr("Close"));
+    adw_message_dialog_add_response(dialog,"load",tr("Load profile"));
+    adw_message_dialog_add_response(dialog,"save",tr("Save profile"));
+    adw_message_dialog_add_response(dialog,"delete",tr("Delete profile"));
+    adw_message_dialog_set_response_appearance(dialog,"delete",ADW_RESPONSE_DESTRUCTIVE);
+    adw_message_dialog_set_close_response(dialog,"close");
+    g_signal_connect(dialog,"response",G_CALLBACK(+[](AdwMessageDialog* d,const char* response,gpointer user){
+        auto* state=static_cast<State*>(user);
+        if(g_strcmp0(response,"close")==0) return;
+        auto* entry=GTK_EDITABLE(g_object_get_data(G_OBJECT(d),"profile-entry"));
+        auto* choices=GTK_DROP_DOWN(g_object_get_data(G_OBJECT(d),"profile-choices"));
+        std::string name=gtk_editable_get_text(entry);
+        auto* selected=gtk_drop_down_get_selected_item(choices);
+        if(name.empty() && selected) name=gtk_string_object_get_string(GTK_STRING_OBJECT(selected));
+        if(name.empty() || name.size()>200 || name=="." || name==".." || name.find_first_of("/\\\\")!=std::string::npos || name.find_first_of("\\r\\n")!=std::string::npos) {
+            status(state,tr("Invalid profile name"));return;
+        }
+        const auto path=(profiles_directory()/(name+".ini")).string();
+        if(g_strcmp0(response,"save")==0) {
+            if(save_settings(state,path)) status(state,tr("Profile saved"));
+        } else if(g_strcmp0(response,"load")==0) {
+            status(state,restore_settings(state,path)?tr("Profile loaded"):tr("Could not load profile"));
+        } else if(g_strcmp0(response,"delete")==0) {
+            std::error_code error;
+            status(state,std::filesystem::remove(path,error)?tr("Profile deleted"):tr("Could not delete profile"));
+        }
+    }),s);
+    gtk_window_present(GTK_WINDOW(dialog));
 }
 static void activate(GApplication* application,gpointer) {
     adw_style_manager_set_color_scheme(adw_style_manager_get_default(),ADW_COLOR_SCHEME_DEFAULT);
@@ -1050,6 +1108,9 @@ static void activate(GApplication* application,gpointer) {
     auto* save_defaults=gtk_button_new_with_label(tr("Save preferences"));
     g_signal_connect(save_defaults,"clicked",G_CALLBACK(save_preferences),s);
     gtk_box_append(GTK_BOX(side),save_defaults);
+    auto* profiles=gtk_button_new_with_label(tr("Printing profiles"));
+    g_signal_connect(profiles,"clicked",G_CALLBACK(profiles_clicked),s);
+    gtk_box_append(GTK_BOX(side),profiles);
     restore_preferences(s);
     update_page(s);
     gtk_window_present(GTK_WINDOW(s->window));

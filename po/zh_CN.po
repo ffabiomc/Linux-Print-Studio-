@@ -1,0 +1,404 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: zh_CN\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Linux Print Studio"
+msgstr "Linux Print Studio"
+
+msgid "Open PDF"
+msgstr "打开 PDF"
+
+msgid "Normal"
+msgstr "普通"
+
+msgid "Booklet"
+msgstr "小册子"
+
+msgid "2 pages / sheet"
+msgstr "每张纸 2 页"
+
+msgid "4 pages / sheet"
+msgstr "每张纸 4 页"
+
+msgid "6 pages / sheet"
+msgstr "每张纸 6 页"
+
+msgid "9 pages / sheet"
+msgstr "每张纸 9 页"
+
+msgid "16 pages / sheet"
+msgstr "每张纸 16 页"
+
+msgid "Automatic"
+msgstr "自动"
+
+msgid "Portrait"
+msgstr "纵向"
+
+msgid "Landscape"
+msgstr "横向"
+
+msgid "A4"
+msgstr "A4"
+
+msgid "Letter"
+msgstr "Letter（信纸）"
+
+msgid "Legal"
+msgstr "Legal（法律用纸）"
+
+msgid "One-sided"
+msgstr "单面打印"
+
+msgid "Automatic (long edge)"
+msgstr "自动（长边翻转）"
+
+msgid "Automatic (short edge)"
+msgstr "自动（短边翻转）"
+
+msgid "Manual (two passes)"
+msgstr "手动（两次打印）"
+
+msgid "All sheets"
+msgstr "所有纸张"
+
+msgid "Front pass"
+msgstr "打印正面"
+
+msgid "Back pass"
+msgstr "打印背面"
+
+msgid "Page layout"
+msgstr "页面布局"
+
+msgid "Orientation"
+msgstr "方向"
+
+msgid "Paper size"
+msgstr "纸张尺寸"
+
+msgid "Printer"
+msgstr "打印机"
+
+msgid "Copies"
+msgstr "份数"
+
+msgid "Duplex mode"
+msgstr "双面打印模式"
+
+msgid "Reverse back-side order"
+msgstr "反转背面打印顺序"
+
+msgid "1. Print fronts"
+msgstr "1. 打印正面"
+
+msgid "2. Print backs (after reloading paper)"
+msgstr "2. 重新装纸后打印背面"
+
+msgid "Calibration: print front"
+msgstr "校准：打印正面"
+
+msgid "Calibration: print back"
+msgstr "校准：打印背面"
+
+msgid "Export PDF"
+msgstr "导出 PDF"
+
+msgid "Print"
+msgstr "打印"
+
+msgid "Previous"
+msgstr "上一页"
+
+msgid "Next"
+msgstr "下一页"
+
+msgid "No document"
+msgstr "无文档"
+
+msgid "Open a PDF to begin"
+msgstr "打开 PDF 以开始"
+
+msgid "No sides in this pass"
+msgstr "本次无可打印面"
+
+msgid "Front"
+msgstr "正面"
+
+msgid "Back"
+msgstr "背面"
+
+msgid "Sheet"
+msgstr "纸张"
+
+msgid "Open a PDF first"
+msgstr "请先打开 PDF"
+
+msgid "Select a printer"
+msgstr "请选择打印机"
+
+msgid "No back sides required"
+msgstr "无需打印背面"
+
+msgid "Invalid path"
+msgstr "无效路径"
+
+msgid "Could not open PDF"
+msgstr "无法打开 PDF"
+
+msgid "PDF documents"
+msgstr "PDF 文档"
+
+msgid "Open"
+msgstr "打开"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Manual duplex: click Print fronts first, then reload paper and click Print backs"
+msgstr "手动双面打印：先打印正面，然后重新装纸并打印背面"
+
+msgid "Print job submitted"
+msgstr "打印任务已提交"
+
+msgid "Back sides submitted; check paper orientation"
+msgstr "背面打印任务已提交；请检查纸张方向"
+
+msgid "Open a PDF to preview and configure printing"
+msgstr "打开 PDF 以预览并配置打印"
+
+msgid "Only local PDF files are supported"
+msgstr "仅支持本地 PDF 文件"
+
+msgid "Drop a PDF file"
+msgstr "将 PDF 文件拖放到此处"
+
+msgid "Zoom"
+msgstr "缩放"
+
+msgid "Fit page"
+msgstr "适合页面"
+
+msgid "Fit width"
+msgstr "适合宽度"
+
+msgid "pages"
+msgstr "页"
+
+msgid "sheets"
+msgstr "张"
+
+msgid "Refresh printers"
+msgstr "刷新打印机列表"
+
+msgid "No printers configured"
+msgstr "未配置打印机"
+
+msgid "Pages to print"
+msgstr "打印页码"
+
+msgid "All pages"
+msgstr "所有页面"
+
+msgid "Even pages"
+msgstr "偶数页"
+
+msgid "Odd pages"
+msgstr "奇数页"
+
+msgid "Custom range"
+msgstr "自定义范围"
+
+msgid "Invalid page range"
+msgstr "无效的页码范围"
+
+msgid "Invalid page range; use e.g. 1-5, 8, 12-15"
+msgstr "无效的页码范围；例如输入 1-5, 8, 12-15"
+
+msgid "Advanced settings"
+msgstr "高级设置"
+
+msgid "Scale (%)"
+msgstr "缩放比例 (%)"
+
+msgid "Margins (mm)"
+msgstr "页边距 (mm)"
+
+msgid "Center content"
+msgstr "内容居中"
+
+msgid "Color mode"
+msgstr "颜色模式"
+
+msgid "Color"
+msgstr "彩色"
+
+msgid "Grayscale"
+msgstr "灰度"
+
+msgid "Print quality"
+msgstr "打印质量"
+
+msgid "Printer default"
+msgstr "打印机默认设置"
+
+msgid "Draft"
+msgstr "草稿"
+
+msgid "Normal quality"
+msgstr "普通质量"
+
+msgid "High quality"
+msgstr "高质量"
+
+msgid "Select a PDF and printer to begin"
+msgstr "选择 PDF 和打印机以开始"
+
+msgid "Step 1 of 3: Print the front sides"
+msgstr "第 1 步（共 3 步）：打印正面"
+
+msgid "Step 2 of 3: Reload paper and confirm"
+msgstr "第 2 步（共 3 步）：重新装纸并确认"
+
+msgid "Step 3 of 3: Print the back sides"
+msgstr "第 3 步（共 3 步）：打印背面"
+
+msgid "Only front sides are needed"
+msgstr "只需打印正面"
+
+msgid "Paper reloaded and printer has finished"
+msgstr "打印机已完成打印，纸张已重新装入"
+
+msgid "3. Print backs"
+msgstr "3. 打印背面"
+
+msgid "Paper reload orientation (calibrate first)"
+msgstr "重新装纸方向（请先校准）"
+
+msgid "Not calibrated"
+msgstr "未校准"
+
+msgid "Top edge first"
+msgstr "顶边先进入"
+
+msgid "Bottom edge first"
+msgstr "底边先进入"
+
+msgid "Save calibration for printer"
+msgstr "保存打印机校准设置"
+
+msgid "Calibration saved for this printer"
+msgstr "已保存此打印机的校准设置"
+
+msgid "Could not save calibration"
+msgstr "无法保存校准设置"
+
+msgid "After the front pass finishes, reload the stack with its top edge entering first, as verified by calibration."
+msgstr "正面打印完成后，按照校准结果，将整叠纸张以顶边先进入的方式重新装入。"
+
+msgid "After the front pass finishes, reload the stack with its bottom edge entering first, as verified by calibration."
+msgstr "正面打印完成后，按照校准结果，将整叠纸张以底边先进入的方式重新装入。"
+
+msgid "Paper orientation is not calibrated. Use the front/back calibration sheets before printing a large job."
+msgstr "纸张方向尚未校准。大量打印前，请先使用正反面校准纸进行测试。"
+
+msgid "Virtual printer"
+msgstr "虚拟打印机"
+
+msgid "Virtual printer installed; receiver running."
+msgstr "虚拟打印机已安装；接收服务正在运行。"
+
+msgid "Virtual printer installed; receiver stopped."
+msgstr "虚拟打印机已安装；接收服务已停止。"
+
+msgid "Install the virtual printer to receive documents from other applications."
+msgstr "安装虚拟打印机以接收其他应用程序的文档。"
+
+msgid "Repair"
+msgstr "修复"
+
+msgid "Install"
+msgstr "安装"
+
+msgid "Remove"
+msgstr "移除"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "Configuration completed."
+msgstr "配置完成。"
+
+msgid "Configuration failed or authorization was cancelled."
+msgstr "配置失败或授权已取消。"
+
+msgid "Save preferences"
+msgstr "保存首选项"
+
+msgid "Could not save preferences"
+msgstr "无法保存首选项"
+
+msgid "Printing preferences saved"
+msgstr "打印首选项已保存"
+
+msgid "Printing profiles"
+msgstr "打印配置方案"
+
+msgid "Select an existing profile or enter a new name."
+msgstr "选择现有方案或输入新名称。"
+
+msgid "Profile name"
+msgstr "方案名称"
+
+msgid "Load profile"
+msgstr "加载方案"
+
+msgid "Save profile"
+msgstr "保存方案"
+
+msgid "Delete profile"
+msgstr "删除方案"
+
+msgid "Invalid profile name"
+msgstr "无效的方案名称"
+
+msgid "Profile saved"
+msgstr "方案已保存"
+
+msgid "Profile loaded"
+msgstr "方案已加载"
+
+msgid "Could not load profile"
+msgstr "无法加载方案"
+
+msgid "Profile deleted"
+msgstr "方案已删除"
+
+msgid "Could not delete profile"
+msgstr "无法删除方案"
+
+msgid "General settings"
+msgstr "常规设置"
+
+msgid "Choose the application appearance."
+msgstr "选择应用程序的外观。"
+
+msgid "System theme"
+msgstr "系统主题"
+
+msgid "Light theme"
+msgstr "浅色主题"
+
+msgid "Dark theme"
+msgstr "深色主题"
+
+msgid "Reset printing defaults"
+msgstr "重置打印默认设置"
+
+msgid "Remove saved printing defaults? Named profiles and calibration will be kept. Reopen the application to use factory defaults."
+msgstr "是否删除已保存的打印默认设置？已命名的方案和校准设置将保留。重新打开应用程序以使用出厂默认设置。"
+
+msgid "Printing defaults reset; reopen the application."
+msgstr "打印默认设置已重置；请重新打开应用程序。"

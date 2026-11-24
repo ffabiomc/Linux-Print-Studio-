@@ -402,3 +402,12 @@ msgstr "保存された印刷の既定設定を削除しますか？名前付き
 
 msgid "Printing defaults reset; reopen the application."
 msgstr "印刷の既定設定をリセットしました。アプリケーションを開き直してください。"
+
+msgid "Language"
+msgstr "言語"
+
+msgid "System language"
+msgstr "システムの言語"
+
+msgid "Language changed; reopen the application."
+msgstr "言語を変更しました。アプリを再起動してください。"

@@ -5,7 +5,11 @@ case "${1:-}" in
   install)
     test "$(id -u)" -eq 0 || { echo "Run as administrator" >&2; exit 1; }
     test -x /usr/lib/cups/backend/lps || test -x /usr/libexec/cups/backend/lps || { echo "Linux Print Studio backend is not installed" >&2; exit 1; }
-    lpadmin -p "$queue" -D "Linux Print Studio" -v lps:/local -m raw -o printer-is-shared=false -E
+    user="${SUDO_USER:-}"
+    test -n "$user" || { echo "Use sudo from your desktop user" >&2; exit 1; }
+    uid=$(id -u "$user")
+    test "$uid" -ge 1000
+    lpadmin -p "$queue" -D "Linux Print Studio" -v "lps:/local/$uid" -m raw -o printer-is-shared=false -u "allow:$user" -E
     ;;
   remove)
     test "$(id -u)" -eq 0 || exit 1

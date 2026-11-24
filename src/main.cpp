@@ -717,9 +717,14 @@ static void activate(GApplication* application,gpointer) {
     gtk_widget_set_vexpand(body,TRUE);
     gtk_box_append(GTK_BOX(outer),body);
     auto* sidebar_scroll=gtk_scrolled_window_new();
-    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(sidebar_scroll),GTK_POLICY_NEVER,GTK_POLICY_AUTOMATIC);
-    gtk_widget_set_size_request(sidebar_scroll,320,-1);
-    gtk_box_append(GTK_BOX(body),sidebar_scroll);
+    auto* sidebar=gtk_box_new(GTK_ORIENTATION_VERTICAL,0);
+    gtk_widget_set_size_request(sidebar,320,-1);
+    gtk_widget_set_hexpand(sidebar,FALSE);
+    gtk_box_append(GTK_BOX(body),sidebar);
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(sidebar_scroll),GTK_POLICY_AUTOMATIC,GTK_POLICY_AUTOMATIC);
+    gtk_scrolled_window_set_propagate_natural_width(GTK_SCROLLED_WINDOW(sidebar_scroll),FALSE);
+    gtk_widget_set_vexpand(sidebar_scroll,TRUE);
+    gtk_box_append(GTK_BOX(sidebar),sidebar_scroll);
     auto* side=gtk_box_new(GTK_ORIENTATION_VERTICAL,12);
     gtk_widget_set_margin_start(side,18);gtk_widget_set_margin_end(side,18);
     gtk_widget_set_margin_top(side,18);gtk_widget_set_margin_bottom(side,18);
@@ -854,15 +859,22 @@ static void activate(GApplication* application,gpointer) {
     g_signal_connect(s->calibration_save,"clicked",G_CALLBACK(calibration_save_clicked),s);
     gtk_box_append(GTK_BOX(side),s->calibration_save);
     load_duplex_profile(s);
+    auto* actions=gtk_box_new(GTK_ORIENTATION_VERTICAL,8);
+    gtk_widget_set_margin_start(actions,12);
+    gtk_widget_set_margin_end(actions,12);
+    gtk_widget_set_margin_top(actions,8);
+    gtk_widget_set_margin_bottom(actions,8);
+    gtk_box_append(GTK_BOX(sidebar),gtk_separator_new(GTK_ORIENTATION_HORIZONTAL));
+    gtk_box_append(GTK_BOX(sidebar),actions);
     auto* export_button=gtk_button_new_with_label(tr("Export PDF"));
     s->export_button=export_button;
     gtk_widget_add_css_class(export_button,"suggested-action");
     g_signal_connect(export_button,"clicked",G_CALLBACK(export_clicked),s);
-    gtk_box_append(GTK_BOX(side),export_button);
+    gtk_box_append(GTK_BOX(actions),export_button);
     auto* print_button=gtk_button_new_with_label(tr("Print"));
     s->print_button=print_button;
     g_signal_connect(print_button,"clicked",G_CALLBACK(print_clicked),s);
-    gtk_box_append(GTK_BOX(side),print_button);
+    gtk_box_append(GTK_BOX(actions),print_button);
     auto* main=gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
     gtk_widget_set_hexpand(main,TRUE);
     gtk_box_append(GTK_BOX(body),main);
@@ -911,6 +923,12 @@ static void activate(GApplication* application,gpointer) {
     gtk_box_append(GTK_BOX(outer),s->status);
     update_page(s);
     gtk_window_present(GTK_WINDOW(s->window));
+    if(g_getenv("LPS_SMOKE_TEST")) {
+        g_timeout_add(1000,+[](gpointer app)->gboolean {
+            g_application_quit(G_APPLICATION(app));
+            return G_SOURCE_REMOVE;
+        },application);
+    }
 }
 int main(int argc,char** argv) {
     setlocale(LC_ALL,"");

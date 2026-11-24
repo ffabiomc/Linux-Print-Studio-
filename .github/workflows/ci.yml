@@ -295,3 +295,43 @@ jobs:
           path: |
             *.pkg.tar.zst
             SHA256SUMS-arch
+
+  debian-native:
+    runs-on: ubuntu-24.04
+    container:
+      image: debian:13
+    steps:
+      - name: Dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y git ca-certificates cmake ninja-build g++ pkg-config libgtk-4-dev libadwaita-1-dev libpoppler-glib-dev libcairo2-dev libcups2-dev gettext desktop-file-utils dpkg-dev
+      - uses: actions/checkout@v4
+      - name: Build and test
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+          cmake --build build --parallel 2
+          ctest --test-dir build --output-on-failure
+          desktop-file-validate data/io.github.ffabiomc.LinuxPrintStudio.desktop
+          for lang in pt_BR pt_PT es fr de it ru zh_CN ja ko ar fi sv; do
+            msgfmt --check-format -o /dev/null "po/$lang.po"
+          done
+      - name: Package and install
+        run: |
+          mkdir -p pkg/DEBIAN debian
+          DESTDIR="$PWD/pkg" cmake --install build
+          printf 'Source: linux-print-studio-cpp\nSection: utils\nPriority: optional\nMaintainer: Linux Print Studio\n\nPackage: linux-print-studio-cpp\nArchitecture: any\nDescription: Native GTK PDF printing studio\n' > debian/control
+          deps=$(dpkg-shlibdeps -O -e pkg/usr/bin/linux-print-studio | sed -n 's/^shlibs:Depends=//p')
+          test -n "$deps"
+          printf 'Package: linux-print-studio-cpp\nVersion: 1.0.2-${{ github.run_number }}+deb13\nArchitecture: amd64\nMaintainer: Linux Print Studio\nDepends: %s, cups, cups-client, python3, systemd, pkexec\nDescription: Native GTK PDF printing studio\n' "$deps" > pkg/DEBIAN/control
+          dpkg-deb --root-owner-group --build pkg linux-print-studio-cpp_1.0.2-${{ github.run_number }}+deb13_amd64.deb
+          DEBIAN_FRONTEND=noninteractive apt-get install -y ./linux-print-studio-cpp_*.deb
+          for lang in pt_BR pt_PT es fr de it ru zh_CN ja ko ar fi sv; do
+            test -s "/usr/share/locale/$lang/LC_MESSAGES/linux-print-studio.mo" || { echo "Missing installed catalog: $lang"; exit 1; }
+          done
+          sha256sum *.deb > SHA256SUMS-debian
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-print-studio-cpp-debian13-build-${{ github.run_number }}
+          path: |
+            *.deb
+            SHA256SUMS-debian

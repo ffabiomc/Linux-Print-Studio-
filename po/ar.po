@@ -402,3 +402,12 @@ msgstr "هل تريد إزالة إعدادات الطباعة الافتراض�
 
 msgid "Printing defaults reset; reopen the application."
 msgstr "تمت إعادة ضبط إعدادات الطباعة الافتراضية؛ أعد فتح التطبيق."
+
+msgid "Language"
+msgstr "اللغة"
+
+msgid "System language"
+msgstr "لغة النظام"
+
+msgid "Language changed; reopen the application."
+msgstr "تم تغيير اللغة؛ أعد فتح التطبيق."

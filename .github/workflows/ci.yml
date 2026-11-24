@@ -135,7 +135,7 @@ jobs:
           rpm --eval '%_install_langs'
           dnf install -y ./linux-print-studio-cpp-*.rpm
           for lang in pt_BR pt_PT es fr de it ru zh_CN ja ko ar fi sv; do
-            test -s "/usr/share/locale/$lang/LC_MESSAGES/linux-print-studio.mo"
+            test -s "/usr/share/locale/$lang/LC_MESSAGES/linux-print-studio.mo" || { echo "Missing installed catalog: $lang"; exit 1; }
           done
           sha256sum *.rpm > SHA256SUMS-rpm
       - uses: actions/upload-artifact@v4
@@ -221,7 +221,7 @@ jobs:
           cp rpmbuild/RPMS/x86_64/*.rpm .
           zypper --non-interactive --no-gpg-checks install ./*.rpm
           for lang in pt_BR pt_PT es fr de it ru zh_CN ja ko ar fi sv; do
-            test -s "/usr/share/locale/$lang/LC_MESSAGES/linux-print-studio.mo"
+            test -s "/usr/share/locale/$lang/LC_MESSAGES/linux-print-studio.mo" || { echo "Missing installed catalog: $lang"; exit 1; }
           done
           sha256sum *.rpm > SHA256SUMS-opensuse
       - uses: actions/upload-artifact@v4
@@ -274,11 +274,19 @@ jobs:
           PKG
           chown -R builder:builder /tmp/lps-build
           runuser -u builder -- makepkg --noconfirm
-          pacman -U --noconfirm ./*.pkg.tar.zst
+          mainpkg=$(find . -maxdepth 1 -name 'linux-print-studio-cpp-1*.pkg.tar.zst' -print -quit)
+          test -n "$mainpkg"
+          bsdtar -tf "$mainpkg" > arch-files.txt
           for lang in pt_BR pt_PT es fr de it ru zh_CN ja ko ar fi sv; do
-            test -s "/usr/share/locale/$lang/LC_MESSAGES/linux-print-studio.mo"
+            grep -Fx "usr/share/locale/$lang/LC_MESSAGES/linux-print-studio.mo" arch-files.txt
           done
-          cp ./*.pkg.tar.zst "$GITHUB_WORKSPACE/"
+          sed -i '/^[[:space:]]*NoExtract[[:space:]]*=/d' /etc/pacman.conf
+          pacman-conf NoExtract
+          pacman -U --noconfirm "$mainpkg"
+          for lang in pt_BR pt_PT es fr de it ru zh_CN ja ko ar fi sv; do
+            test -s "/usr/share/locale/$lang/LC_MESSAGES/linux-print-studio.mo" || { echo "Missing installed catalog: $lang"; exit 1; }
+          done
+          cp "$mainpkg" "$GITHUB_WORKSPACE/"
           cd "$GITHUB_WORKSPACE"
           sha256sum *.pkg.tar.zst > SHA256SUMS-arch
       - uses: actions/upload-artifact@v4

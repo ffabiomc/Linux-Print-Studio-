@@ -1,0 +1,404 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: ja\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Linux Print Studio"
+msgstr "Linux Print Studio"
+
+msgid "Open PDF"
+msgstr "PDFを開く"
+
+msgid "Normal"
+msgstr "標準"
+
+msgid "Booklet"
+msgstr "小冊子"
+
+msgid "2 pages / sheet"
+msgstr "1枚に2ページ"
+
+msgid "4 pages / sheet"
+msgstr "1枚に4ページ"
+
+msgid "6 pages / sheet"
+msgstr "1枚に6ページ"
+
+msgid "9 pages / sheet"
+msgstr "1枚に9ページ"
+
+msgid "16 pages / sheet"
+msgstr "1枚に16ページ"
+
+msgid "Automatic"
+msgstr "自動"
+
+msgid "Portrait"
+msgstr "縦向き"
+
+msgid "Landscape"
+msgstr "横向き"
+
+msgid "A4"
+msgstr "A4"
+
+msgid "Letter"
+msgstr "レター"
+
+msgid "Legal"
+msgstr "リーガル"
+
+msgid "One-sided"
+msgstr "片面印刷"
+
+msgid "Automatic (long edge)"
+msgstr "自動（長辺とじ）"
+
+msgid "Automatic (short edge)"
+msgstr "自動（短辺とじ）"
+
+msgid "Manual (two passes)"
+msgstr "手動（2回印刷）"
+
+msgid "All sheets"
+msgstr "すべての用紙"
+
+msgid "Front pass"
+msgstr "表面の印刷"
+
+msgid "Back pass"
+msgstr "裏面の印刷"
+
+msgid "Page layout"
+msgstr "ページレイアウト"
+
+msgid "Orientation"
+msgstr "印刷方向"
+
+msgid "Paper size"
+msgstr "用紙サイズ"
+
+msgid "Printer"
+msgstr "プリンター"
+
+msgid "Copies"
+msgstr "部数"
+
+msgid "Duplex mode"
+msgstr "両面印刷モード"
+
+msgid "Reverse back-side order"
+msgstr "裏面の印刷順序を逆にする"
+
+msgid "1. Print fronts"
+msgstr "1. 表面を印刷"
+
+msgid "2. Print backs (after reloading paper)"
+msgstr "2. 用紙を再セットして裏面を印刷"
+
+msgid "Calibration: print front"
+msgstr "キャリブレーション：表面を印刷"
+
+msgid "Calibration: print back"
+msgstr "キャリブレーション：裏面を印刷"
+
+msgid "Export PDF"
+msgstr "PDFにエクスポート"
+
+msgid "Print"
+msgstr "印刷"
+
+msgid "Previous"
+msgstr "前へ"
+
+msgid "Next"
+msgstr "次へ"
+
+msgid "No document"
+msgstr "文書なし"
+
+msgid "Open a PDF to begin"
+msgstr "PDFを開いて開始してください"
+
+msgid "No sides in this pass"
+msgstr "今回印刷する面はありません"
+
+msgid "Front"
+msgstr "表面"
+
+msgid "Back"
+msgstr "裏面"
+
+msgid "Sheet"
+msgstr "用紙"
+
+msgid "Open a PDF first"
+msgstr "先にPDFを開いてください"
+
+msgid "Select a printer"
+msgstr "プリンターを選択してください"
+
+msgid "No back sides required"
+msgstr "裏面の印刷は不要です"
+
+msgid "Invalid path"
+msgstr "無効なパス"
+
+msgid "Could not open PDF"
+msgstr "PDFを開けませんでした"
+
+msgid "PDF documents"
+msgstr "PDF文書"
+
+msgid "Open"
+msgstr "開く"
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "Manual duplex: click Print fronts first, then reload paper and click Print backs"
+msgstr "手動両面印刷：先に表面を印刷し、用紙を再セットしてから裏面を印刷してください"
+
+msgid "Print job submitted"
+msgstr "印刷ジョブを送信しました"
+
+msgid "Back sides submitted; check paper orientation"
+msgstr "裏面の印刷ジョブを送信しました。用紙の向きを確認してください"
+
+msgid "Open a PDF to preview and configure printing"
+msgstr "PDFを開いてプレビューと印刷設定を行ってください"
+
+msgid "Only local PDF files are supported"
+msgstr "ローカルのPDFファイルのみ対応しています"
+
+msgid "Drop a PDF file"
+msgstr "PDFファイルをドロップしてください"
+
+msgid "Zoom"
+msgstr "ズーム"
+
+msgid "Fit page"
+msgstr "ページに合わせる"
+
+msgid "Fit width"
+msgstr "幅に合わせる"
+
+msgid "pages"
+msgstr "ページ"
+
+msgid "sheets"
+msgstr "枚"
+
+msgid "Refresh printers"
+msgstr "プリンター一覧を更新"
+
+msgid "No printers configured"
+msgstr "設定済みのプリンターがありません"
+
+msgid "Pages to print"
+msgstr "印刷するページ"
+
+msgid "All pages"
+msgstr "すべてのページ"
+
+msgid "Even pages"
+msgstr "偶数ページ"
+
+msgid "Odd pages"
+msgstr "奇数ページ"
+
+msgid "Custom range"
+msgstr "範囲指定"
+
+msgid "Invalid page range"
+msgstr "無効なページ範囲"
+
+msgid "Invalid page range; use e.g. 1-5, 8, 12-15"
+msgstr "無効なページ範囲です。例：1-5, 8, 12-15"
+
+msgid "Advanced settings"
+msgstr "詳細設定"
+
+msgid "Scale (%)"
+msgstr "拡大・縮小率 (%)"
+
+msgid "Margins (mm)"
+msgstr "余白 (mm)"
+
+msgid "Center content"
+msgstr "内容を中央に配置"
+
+msgid "Color mode"
+msgstr "カラーモード"
+
+msgid "Color"
+msgstr "カラー"
+
+msgid "Grayscale"
+msgstr "グレースケール"
+
+msgid "Print quality"
+msgstr "印刷品質"
+
+msgid "Printer default"
+msgstr "プリンターの既定値"
+
+msgid "Draft"
+msgstr "ドラフト"
+
+msgid "Normal quality"
+msgstr "標準品質"
+
+msgid "High quality"
+msgstr "高品質"
+
+msgid "Select a PDF and printer to begin"
+msgstr "PDFとプリンターを選択して開始してください"
+
+msgid "Step 1 of 3: Print the front sides"
+msgstr "ステップ1/3：表面を印刷"
+
+msgid "Step 2 of 3: Reload paper and confirm"
+msgstr "ステップ2/3：用紙を再セットして確認"
+
+msgid "Step 3 of 3: Print the back sides"
+msgstr "ステップ3/3：裏面を印刷"
+
+msgid "Only front sides are needed"
+msgstr "表面のみ印刷する必要があります"
+
+msgid "Paper reloaded and printer has finished"
+msgstr "印刷が終了し、用紙を再セットしました"
+
+msgid "3. Print backs"
+msgstr "3. 裏面を印刷"
+
+msgid "Paper reload orientation (calibrate first)"
+msgstr "用紙の再セット方向（先にキャリブレーションを実施）"
+
+msgid "Not calibrated"
+msgstr "未調整"
+
+msgid "Top edge first"
+msgstr "上端から挿入"
+
+msgid "Bottom edge first"
+msgstr "下端から挿入"
+
+msgid "Save calibration for printer"
+msgstr "プリンターのキャリブレーションを保存"
+
+msgid "Calibration saved for this printer"
+msgstr "このプリンターのキャリブレーションを保存しました"
+
+msgid "Could not save calibration"
+msgstr "キャリブレーションを保存できませんでした"
+
+msgid "After the front pass finishes, reload the stack with its top edge entering first, as verified by calibration."
+msgstr "表面の印刷が終了したら、キャリブレーションで確認したとおり、用紙の束を上端から再セットしてください。"
+
+msgid "After the front pass finishes, reload the stack with its bottom edge entering first, as verified by calibration."
+msgstr "表面の印刷が終了したら、キャリブレーションで確認したとおり、用紙の束を下端から再セットしてください。"
+
+msgid "Paper orientation is not calibrated. Use the front/back calibration sheets before printing a large job."
+msgstr "用紙の向きが未調整です。大量印刷の前に表裏のキャリブレーション用紙で確認してください。"
+
+msgid "Virtual printer"
+msgstr "仮想プリンター"
+
+msgid "Virtual printer installed; receiver running."
+msgstr "仮想プリンターはインストール済みで、受信サービスは実行中です。"
+
+msgid "Virtual printer installed; receiver stopped."
+msgstr "仮想プリンターはインストール済みですが、受信サービスは停止しています。"
+
+msgid "Install the virtual printer to receive documents from other applications."
+msgstr "他のアプリケーションから文書を受信するには仮想プリンターをインストールしてください。"
+
+msgid "Repair"
+msgstr "修復"
+
+msgid "Install"
+msgstr "インストール"
+
+msgid "Remove"
+msgstr "削除"
+
+msgid "Close"
+msgstr "閉じる"
+
+msgid "Configuration completed."
+msgstr "設定が完了しました。"
+
+msgid "Configuration failed or authorization was cancelled."
+msgstr "設定に失敗したか、認証がキャンセルされました。"
+
+msgid "Save preferences"
+msgstr "設定を保存"
+
+msgid "Could not save preferences"
+msgstr "設定を保存できませんでした"
+
+msgid "Printing preferences saved"
+msgstr "印刷設定を保存しました"
+
+msgid "Printing profiles"
+msgstr "印刷プロファイル"
+
+msgid "Select an existing profile or enter a new name."
+msgstr "既存のプロファイルを選択するか、新しい名前を入力してください。"
+
+msgid "Profile name"
+msgstr "プロファイル名"
+
+msgid "Load profile"
+msgstr "プロファイルを読み込む"
+
+msgid "Save profile"
+msgstr "プロファイルを保存"
+
+msgid "Delete profile"
+msgstr "プロファイルを削除"
+
+msgid "Invalid profile name"
+msgstr "無効なプロファイル名"
+
+msgid "Profile saved"
+msgstr "プロファイルを保存しました"
+
+msgid "Profile loaded"
+msgstr "プロファイルを読み込みました"
+
+msgid "Could not load profile"
+msgstr "プロファイルを読み込めませんでした"
+
+msgid "Profile deleted"
+msgstr "プロファイルを削除しました"
+
+msgid "Could not delete profile"
+msgstr "プロファイルを削除できませんでした"
+
+msgid "General settings"
+msgstr "一般設定"
+
+msgid "Choose the application appearance."
+msgstr "アプリケーションの外観を選択してください。"
+
+msgid "System theme"
+msgstr "システムテーマ"
+
+msgid "Light theme"
+msgstr "ライトテーマ"
+
+msgid "Dark theme"
+msgstr "ダークテーマ"
+
+msgid "Reset printing defaults"
+msgstr "印刷の既定設定をリセット"
+
+msgid "Remove saved printing defaults? Named profiles and calibration will be kept. Reopen the application to use factory defaults."
+msgstr "保存された印刷の既定設定を削除しますか？名前付きプロファイルとキャリブレーションは保持されます。初期設定を使用するにはアプリケーションを開き直してください。"
+
+msgid "Printing defaults reset; reopen the application."
+msgstr "印刷の既定設定をリセットしました。アプリケーションを開き直してください。"

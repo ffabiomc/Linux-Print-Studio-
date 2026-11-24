@@ -4,6 +4,8 @@ Aplicativo nativo Linux para impressão e diagramação de documentos PDF, desen
 
 [English](README.md) · [Downloads](https://github.com/ffabiomc/Linux-Print-Studio-/releases) · [Compilações](https://github.com/ffabiomc/Linux-Print-Studio-/actions) · [Relatar problemas](https://github.com/ffabiomc/Linux-Print-Studio-/issues)
 
+[Histórico de alterações](CHANGELOG.md) · [Manual de utilização](docs/manual.pt_BR.md)
+
 ## Funcionalidades
 
 - Abertura de PDF local, arrastar e soltar, pré-visualização e zoom.

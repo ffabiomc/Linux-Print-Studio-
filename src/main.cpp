@@ -27,7 +27,20 @@ struct GFree {
 };
 using OwnedString=std::unique_ptr<gchar,GFree>;
 }
+static void cleanup_received_pdf(const std::string& path) noexcept {
+    try {
+        const auto file=std::filesystem::path(path);
+        const auto folder=file.parent_path();
+        const char* runtime=g_getenv("XDG_RUNTIME_DIR");
+        if(!runtime || folder.parent_path()!=std::filesystem::path(runtime) ||
+           !folder.filename().string().starts_with("lps-print-")) return;
+        std::error_code error;
+        std::filesystem::remove(file,error);
+        if(!error) std::filesystem::remove(folder,error);
+    } catch(...) {}
+}
 struct State {
+    ~State() { doc.reset(); cleanup_received_pdf(path); }
     GtkWidget *window=nullptr,*preview=nullptr,*status=nullptr,*page_label=nullptr,*prev_button=nullptr,*next_button=nullptr,*print_button=nullptr,*export_button=nullptr,*document_info=nullptr,*zoom=nullptr,*scroller=nullptr;
     GtkWidget *scale_control=nullptr,*margin_control=nullptr,*center_control=nullptr,*color_control=nullptr,*quality_control=nullptr,*printer_details=nullptr,*page_mode=nullptr,*page_range=nullptr,*layout=nullptr,*orientation=nullptr,*paper=nullptr,*copies=nullptr,*duplex=nullptr,*printer=nullptr,*reverse_backs=nullptr,*manual_fronts=nullptr,*manual_backs=nullptr,*preview_pass=nullptr,*duplex_hint=nullptr,*calibration_front=nullptr,*calibration_back=nullptr;
     ObjectPtr<PopplerDocument> doc;
@@ -430,7 +443,9 @@ static void load_pdf(State* s,const char* path) {
     if(!uri) {status(s,err?err->message:tr("Invalid path"));g_clear_error(&err);return;}
     ObjectPtr<PopplerDocument> doc(poppler_document_new_from_file(uri.get(),nullptr,&err));
     if(!doc) {status(s,err?err->message:tr("Could not open PDF"));g_clear_error(&err);return;}
-    s->doc=std::move(doc);s->path=path;s->page=0;
+    s->doc=std::move(doc);
+    if(s->path!=path) cleanup_received_pdf(s->path);
+    s->path=path;s->page=0;
     s->manual_fronts_sent=false;
     if(s->manual_backs) gtk_widget_set_sensitive(s->manual_backs,FALSE);
     status(s,std::filesystem::path(path).filename().string());
@@ -1009,7 +1024,10 @@ int main(int argc,char** argv) {
             if(!window) continue;
             auto* state=static_cast<State*>(g_object_get_data(G_OBJECT(window),"state"));
             OwnedString path(g_file_get_path(files[i]));
-            if(state && path) load_pdf(state,path.get());
+            if(state && path) {
+                load_pdf(state,path.get());
+                if(state->path!=path.get()) cleanup_received_pdf(path.get());
+            }
         }
     }),nullptr);
     int result=g_application_run(G_APPLICATION(app.get()),argc,argv);

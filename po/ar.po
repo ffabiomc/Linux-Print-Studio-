@@ -1,0 +1,404 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: ar\n"
+"Plural-Forms: nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5);\n"
+
+msgid "Linux Print Studio"
+msgstr "Linux Print Studio"
+
+msgid "Open PDF"
+msgstr "فتح PDF"
+
+msgid "Normal"
+msgstr "عادي"
+
+msgid "Booklet"
+msgstr "كتيب"
+
+msgid "2 pages / sheet"
+msgstr "صفحتان لكل ورقة"
+
+msgid "4 pages / sheet"
+msgstr "4 صفحات لكل ورقة"
+
+msgid "6 pages / sheet"
+msgstr "6 صفحات لكل ورقة"
+
+msgid "9 pages / sheet"
+msgstr "9 صفحات لكل ورقة"
+
+msgid "16 pages / sheet"
+msgstr "16 صفحة لكل ورقة"
+
+msgid "Automatic"
+msgstr "تلقائي"
+
+msgid "Portrait"
+msgstr "عمودي"
+
+msgid "Landscape"
+msgstr "أفقي"
+
+msgid "A4"
+msgstr "A4"
+
+msgid "Letter"
+msgstr "Letter"
+
+msgid "Legal"
+msgstr "Legal"
+
+msgid "One-sided"
+msgstr "طباعة على وجه واحد"
+
+msgid "Automatic (long edge)"
+msgstr "تلقائي (الحافة الطويلة)"
+
+msgid "Automatic (short edge)"
+msgstr "تلقائي (الحافة القصيرة)"
+
+msgid "Manual (two passes)"
+msgstr "يدوي (على مرحلتين)"
+
+msgid "All sheets"
+msgstr "جميع الأوراق"
+
+msgid "Front pass"
+msgstr "طباعة الأوجه الأمامية"
+
+msgid "Back pass"
+msgstr "طباعة الأوجه الخلفية"
+
+msgid "Page layout"
+msgstr "تخطيط الصفحة"
+
+msgid "Orientation"
+msgstr "الاتجاه"
+
+msgid "Paper size"
+msgstr "حجم الورق"
+
+msgid "Printer"
+msgstr "الطابعة"
+
+msgid "Copies"
+msgstr "النسخ"
+
+msgid "Duplex mode"
+msgstr "وضع الطباعة على الوجهين"
+
+msgid "Reverse back-side order"
+msgstr "عكس ترتيب الأوجه الخلفية"
+
+msgid "1. Print fronts"
+msgstr "1. طباعة الأوجه الأمامية"
+
+msgid "2. Print backs (after reloading paper)"
+msgstr "2. طباعة الأوجه الخلفية (بعد إعادة تحميل الورق)"
+
+msgid "Calibration: print front"
+msgstr "المعايرة: طباعة الوجه الأمامي"
+
+msgid "Calibration: print back"
+msgstr "المعايرة: طباعة الوجه الخلفي"
+
+msgid "Export PDF"
+msgstr "تصدير PDF"
+
+msgid "Print"
+msgstr "طباعة"
+
+msgid "Previous"
+msgstr "السابق"
+
+msgid "Next"
+msgstr "التالي"
+
+msgid "No document"
+msgstr "لا يوجد مستند"
+
+msgid "Open a PDF to begin"
+msgstr "افتح ملف PDF للبدء"
+
+msgid "No sides in this pass"
+msgstr "لا توجد أوجه للطباعة في هذه المرحلة"
+
+msgid "Front"
+msgstr "الوجه الأمامي"
+
+msgid "Back"
+msgstr "الوجه الخلفي"
+
+msgid "Sheet"
+msgstr "ورقة"
+
+msgid "Open a PDF first"
+msgstr "افتح ملف PDF أولاً"
+
+msgid "Select a printer"
+msgstr "اختر طابعة"
+
+msgid "No back sides required"
+msgstr "لا حاجة إلى طباعة الأوجه الخلفية"
+
+msgid "Invalid path"
+msgstr "مسار غير صالح"
+
+msgid "Could not open PDF"
+msgstr "تعذر فتح ملف PDF"
+
+msgid "PDF documents"
+msgstr "مستندات PDF"
+
+msgid "Open"
+msgstr "فتح"
+
+msgid "Cancel"
+msgstr "إلغاء"
+
+msgid "Manual duplex: click Print fronts first, then reload paper and click Print backs"
+msgstr "الطباعة اليدوية على الوجهين: اطبع الأوجه الأمامية أولاً، ثم أعد تحميل الورق واطبع الأوجه الخلفية"
+
+msgid "Print job submitted"
+msgstr "تم إرسال مهمة الطباعة"
+
+msgid "Back sides submitted; check paper orientation"
+msgstr "تم إرسال الأوجه الخلفية للطباعة؛ تحقق من اتجاه الورق"
+
+msgid "Open a PDF to preview and configure printing"
+msgstr "افتح ملف PDF لمعاينته وضبط إعدادات الطباعة"
+
+msgid "Only local PDF files are supported"
+msgstr "يتم دعم ملفات PDF المحلية فقط"
+
+msgid "Drop a PDF file"
+msgstr "أفلت ملف PDF هنا"
+
+msgid "Zoom"
+msgstr "تكبير وتصغير"
+
+msgid "Fit page"
+msgstr "ملاءمة الصفحة"
+
+msgid "Fit width"
+msgstr "ملاءمة العرض"
+
+msgid "pages"
+msgstr "صفحة"
+
+msgid "sheets"
+msgstr "ورقة"
+
+msgid "Refresh printers"
+msgstr "تحديث قائمة الطابعات"
+
+msgid "No printers configured"
+msgstr "لا توجد طابعات مهيأة"
+
+msgid "Pages to print"
+msgstr "الصفحات المراد طباعتها"
+
+msgid "All pages"
+msgstr "جميع الصفحات"
+
+msgid "Even pages"
+msgstr "الصفحات الزوجية"
+
+msgid "Odd pages"
+msgstr "الصفحات الفردية"
+
+msgid "Custom range"
+msgstr "نطاق مخصص"
+
+msgid "Invalid page range"
+msgstr "نطاق صفحات غير صالح"
+
+msgid "Invalid page range; use e.g. 1-5, 8, 12-15"
+msgstr "نطاق صفحات غير صالح؛ استخدم مثلاً 1-5, 8, 12-15"
+
+msgid "Advanced settings"
+msgstr "إعدادات متقدمة"
+
+msgid "Scale (%)"
+msgstr "المقياس (%)"
+
+msgid "Margins (mm)"
+msgstr "الهوامش (مم)"
+
+msgid "Center content"
+msgstr "توسيط المحتوى"
+
+msgid "Color mode"
+msgstr "وضع الألوان"
+
+msgid "Color"
+msgstr "ملون"
+
+msgid "Grayscale"
+msgstr "تدرج الرمادي"
+
+msgid "Print quality"
+msgstr "جودة الطباعة"
+
+msgid "Printer default"
+msgstr "الإعداد الافتراضي للطابعة"
+
+msgid "Draft"
+msgstr "مسودة"
+
+msgid "Normal quality"
+msgstr "جودة عادية"
+
+msgid "High quality"
+msgstr "جودة عالية"
+
+msgid "Select a PDF and printer to begin"
+msgstr "اختر ملف PDF وطابعة للبدء"
+
+msgid "Step 1 of 3: Print the front sides"
+msgstr "الخطوة 1 من 3: طباعة الأوجه الأمامية"
+
+msgid "Step 2 of 3: Reload paper and confirm"
+msgstr "الخطوة 2 من 3: إعادة تحميل الورق والتأكيد"
+
+msgid "Step 3 of 3: Print the back sides"
+msgstr "الخطوة 3 من 3: طباعة الأوجه الخلفية"
+
+msgid "Only front sides are needed"
+msgstr "يلزم طباعة الأوجه الأمامية فقط"
+
+msgid "Paper reloaded and printer has finished"
+msgstr "انتهت الطابعة وأُعيد تحميل الورق"
+
+msgid "3. Print backs"
+msgstr "3. طباعة الأوجه الخلفية"
+
+msgid "Paper reload orientation (calibrate first)"
+msgstr "اتجاه إعادة تحميل الورق (قم بالمعايرة أولاً)"
+
+msgid "Not calibrated"
+msgstr "غير معاير"
+
+msgid "Top edge first"
+msgstr "الحافة العلوية أولاً"
+
+msgid "Bottom edge first"
+msgstr "الحافة السفلية أولاً"
+
+msgid "Save calibration for printer"
+msgstr "حفظ معايرة الطابعة"
+
+msgid "Calibration saved for this printer"
+msgstr "تم حفظ المعايرة لهذه الطابعة"
+
+msgid "Could not save calibration"
+msgstr "تعذر حفظ المعايرة"
+
+msgid "After the front pass finishes, reload the stack with its top edge entering first, as verified by calibration."
+msgstr "بعد انتهاء طباعة الأوجه الأمامية، أعد تحميل رزمة الورق بحيث تدخل الحافة العلوية أولاً، وفقاً لنتيجة المعايرة."
+
+msgid "After the front pass finishes, reload the stack with its bottom edge entering first, as verified by calibration."
+msgstr "بعد انتهاء طباعة الأوجه الأمامية، أعد تحميل رزمة الورق بحيث تدخل الحافة السفلية أولاً، وفقاً لنتيجة المعايرة."
+
+msgid "Paper orientation is not calibrated. Use the front/back calibration sheets before printing a large job."
+msgstr "لم تتم معايرة اتجاه الورق. استخدم أوراق معايرة الوجهين قبل تنفيذ مهمة طباعة كبيرة."
+
+msgid "Virtual printer"
+msgstr "طابعة افتراضية"
+
+msgid "Virtual printer installed; receiver running."
+msgstr "الطابعة الافتراضية مثبتة؛ خدمة الاستقبال قيد التشغيل."
+
+msgid "Virtual printer installed; receiver stopped."
+msgstr "الطابعة الافتراضية مثبتة؛ خدمة الاستقبال متوقفة."
+
+msgid "Install the virtual printer to receive documents from other applications."
+msgstr "ثبّت الطابعة الافتراضية لاستقبال المستندات من التطبيقات الأخرى."
+
+msgid "Repair"
+msgstr "إصلاح"
+
+msgid "Install"
+msgstr "تثبيت"
+
+msgid "Remove"
+msgstr "إزالة"
+
+msgid "Close"
+msgstr "إغلاق"
+
+msgid "Configuration completed."
+msgstr "اكتمل الإعداد."
+
+msgid "Configuration failed or authorization was cancelled."
+msgstr "فشل الإعداد أو تم إلغاء التفويض."
+
+msgid "Save preferences"
+msgstr "حفظ التفضيلات"
+
+msgid "Could not save preferences"
+msgstr "تعذر حفظ التفضيلات"
+
+msgid "Printing preferences saved"
+msgstr "تم حفظ تفضيلات الطباعة"
+
+msgid "Printing profiles"
+msgstr "ملفات تعريف الطباعة"
+
+msgid "Select an existing profile or enter a new name."
+msgstr "اختر ملف تعريف موجوداً أو أدخل اسماً جديداً."
+
+msgid "Profile name"
+msgstr "اسم ملف التعريف"
+
+msgid "Load profile"
+msgstr "تحميل ملف التعريف"
+
+msgid "Save profile"
+msgstr "حفظ ملف التعريف"
+
+msgid "Delete profile"
+msgstr "حذف ملف التعريف"
+
+msgid "Invalid profile name"
+msgstr "اسم ملف التعريف غير صالح"
+
+msgid "Profile saved"
+msgstr "تم حفظ ملف التعريف"
+
+msgid "Profile loaded"
+msgstr "تم تحميل ملف التعريف"
+
+msgid "Could not load profile"
+msgstr "تعذر تحميل ملف التعريف"
+
+msgid "Profile deleted"
+msgstr "تم حذف ملف التعريف"
+
+msgid "Could not delete profile"
+msgstr "تعذر حذف ملف التعريف"
+
+msgid "General settings"
+msgstr "الإعدادات العامة"
+
+msgid "Choose the application appearance."
+msgstr "اختر مظهر التطبيق."
+
+msgid "System theme"
+msgstr "سمة النظام"
+
+msgid "Light theme"
+msgstr "سمة فاتحة"
+
+msgid "Dark theme"
+msgstr "سمة داكنة"
+
+msgid "Reset printing defaults"
+msgstr "إعادة ضبط إعدادات الطباعة الافتراضية"
+
+msgid "Remove saved printing defaults? Named profiles and calibration will be kept. Reopen the application to use factory defaults."
+msgstr "هل تريد إزالة إعدادات الطباعة الافتراضية المحفوظة؟ سيتم الاحتفاظ بملفات التعريف المسماة والمعايرة. أعد فتح التطبيق لاستخدام إعدادات المصنع."
+
+msgid "Printing defaults reset; reopen the application."
+msgstr "تمت إعادة ضبط إعدادات الطباعة الافتراضية؛ أعد فتح التطبيق."

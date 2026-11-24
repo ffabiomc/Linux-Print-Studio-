@@ -944,8 +944,18 @@ int main(int argc,char** argv) {
     setlocale(LC_ALL,"");
     bindtextdomain("linux-print-studio",LPS_LOCALE_DIR);
     bind_textdomain_codeset("linux-print-studio","UTF-8");
-    ObjectPtr<AdwApplication> app(adw_application_new("io.github.ffabiomc.LinuxPrintStudio",G_APPLICATION_DEFAULT_FLAGS));
+    ObjectPtr<AdwApplication> app(adw_application_new("io.github.ffabiomc.LinuxPrintStudio",G_APPLICATION_HANDLES_OPEN));
     g_signal_connect(app.get(),"activate",G_CALLBACK(activate),nullptr);
+    g_signal_connect(app.get(),"open",G_CALLBACK(+[](GApplication* application,GFile** files,gint count,const gchar*,gpointer) {
+        for(gint i=0;i<count;i++) {
+            activate(application,nullptr);
+            auto* window=gtk_application_get_active_window(GTK_APPLICATION(application));
+            if(!window) continue;
+            auto* state=static_cast<State*>(g_object_get_data(G_OBJECT(window),"state"));
+            OwnedString path(g_file_get_path(files[i]));
+            if(state && path) load_pdf(state,path.get());
+        }
+    }),nullptr);
     int result=g_application_run(G_APPLICATION(app.get()),argc,argv);
     return result;
 }

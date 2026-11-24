@@ -22,6 +22,10 @@ jobs:
           python3 -m py_compile scripts/lps scripts/lps-receive
           sh -n scripts/lps-virtual-printer
           ctest --test-dir build --output-on-failure
+          for lang in pt_BR pt_PT es fr de it ru zh_CN ja ko ar fi sv; do
+            msgfmt --check-format -o /dev/null "po/$lang.po"
+            test -s "build/locale/$lang/LC_MESSAGES/linux-print-studio.mo"
+          done
           desktop-file-validate data/io.github.ffabiomc.LinuxPrintStudio.desktop
       - name: Graphical startup smoke test
         run: |
@@ -33,10 +37,18 @@ jobs:
           DESTDIR="$PWD/pkg" cmake --install build --prefix /usr
           printf 'Package: linux-print-studio-cpp\nVersion: 1.0.2-${{ github.run_number }}\nArchitecture: amd64\nMaintainer: Linux Print Studio\nDepends: libgtk-4-1, libadwaita-1-0, libpoppler-glib8, libcups2, libcairo2, cups-client, python3, systemd, pkexec\nDescription: Linux Print Studio GTK edition\n' > pkg/DEBIAN/control
           dpkg-deb --root-owner-group --build pkg linux-print-studio-cpp_1.0.2-${{ github.run_number }}_amd64.deb
+          sudo apt-get install -y ./linux-print-studio-cpp_*.deb
+          for lang in pt_BR pt_PT es fr de it ru zh_CN ja ko ar fi sv; do
+            test -s "/usr/share/locale/$lang/LC_MESSAGES/linux-print-studio.mo"
+          done
+          timeout 30s xvfb-run -a dbus-run-session -- env LPS_SMOKE_TEST=1 GSK_RENDERER=cairo /usr/bin/linux-print-studio
+          sha256sum *.deb > SHA256SUMS-deb
       - uses: actions/upload-artifact@v4
         with:
           name: linux-print-studio-cpp-deb-build-${{ github.run_number }}
-          path: '*.deb'
+          path: |
+            *.deb
+            SHA256SUMS-deb
 
   fedora-rpm:
     runs-on: ubuntu-24.04
@@ -55,6 +67,10 @@ jobs:
           python3 -m py_compile scripts/lps scripts/lps-receive
           sh -n scripts/lps-virtual-printer
           ctest --test-dir build --output-on-failure
+          for lang in pt_BR pt_PT es fr de it ru zh_CN ja ko ar fi sv; do
+            msgfmt --check-format -o /dev/null "po/$lang.po"
+            test -s "build/locale/$lang/LC_MESSAGES/linux-print-studio.mo"
+          done
           desktop-file-validate data/io.github.ffabiomc.LinuxPrintStudio.desktop
       - name: Graphical startup smoke test
         run: |
@@ -111,10 +127,17 @@ jobs:
           sed -i "s|%{_topdir}/../../staging|$PWD/staging|" rpmbuild/SPECS/linux-print-studio-cpp.spec
           rpmbuild -bb --define "_topdir $PWD/rpmbuild" rpmbuild/SPECS/linux-print-studio-cpp.spec
           cp rpmbuild/RPMS/x86_64/*.rpm .
+          dnf install -y ./linux-print-studio-cpp-*.rpm
+          for lang in pt_BR pt_PT es fr de it ru zh_CN ja ko ar fi sv; do
+            test -s "/usr/share/locale/$lang/LC_MESSAGES/linux-print-studio.mo"
+          done
+          sha256sum *.rpm > SHA256SUMS-rpm
       - uses: actions/upload-artifact@v4
         with:
           name: linux-print-studio-cpp-fedora-rpm-build-${{ github.run_number }}
-          path: '*.rpm'
+          path: |
+            *.rpm
+            SHA256SUMS-rpm
 
   memory-safety:
     runs-on: ubuntu-24.04

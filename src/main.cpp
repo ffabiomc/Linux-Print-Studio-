@@ -852,7 +852,7 @@ static void profiles_clicked(GtkButton*,gpointer data) {
         std::string name=gtk_editable_get_text(entry);
         auto* selected=gtk_drop_down_get_selected_item(choices);
         if(name.empty() && selected) name=gtk_string_object_get_string(GTK_STRING_OBJECT(selected));
-        if(name.empty() || name.size()>200 || name=="." || name==".." || name.find_first_of("/\\\\")!=std::string::npos || name.find_first_of("\\r\\n")!=std::string::npos) {
+        if(name.empty() || name.size()>200 || name=="." || name==".." || name.find_first_of("/\\\\")!=std::string::npos || name.find_first_of("\r\n")!=std::string::npos) {
             status(state,tr("Invalid profile name"));return;
         }
         const auto path=(profiles_directory()/(name+".ini")).string();
@@ -867,8 +867,61 @@ static void profiles_clicked(GtkButton*,gpointer data) {
     }),s);
     gtk_window_present(GTK_WINDOW(dialog));
 }
+static std::string general_path() {
+    return std::string(g_get_user_config_dir())+"/linux-print-studio/general.ini";
+}
+static void apply_theme(int theme) {
+    adw_style_manager_set_color_scheme(adw_style_manager_get_default(),
+        theme==1?ADW_COLOR_SCHEME_FORCE_LIGHT:theme==2?ADW_COLOR_SCHEME_FORCE_DARK:ADW_COLOR_SCHEME_DEFAULT);
+}
+static int general_theme() {
+    std::unique_ptr<GKeyFile,decltype(&g_key_file_free)> file(g_key_file_new(),g_key_file_free);
+    g_key_file_load_from_file(file.get(),general_path().c_str(),G_KEY_FILE_NONE,nullptr);
+    return std::clamp(g_key_file_get_integer(file.get(),"general","theme",nullptr),0,2);
+}
+static void general_clicked(GtkButton*,gpointer data) {
+    auto* s=static_cast<State*>(data);
+    auto* d=ADW_MESSAGE_DIALOG(adw_message_dialog_new(GTK_WINDOW(s->window),tr("General settings"),tr("Choose the application appearance.")));
+    const char* themes[]={tr("System theme"),tr("Light theme"),tr("Dark theme"),nullptr};
+    auto* theme=gtk_drop_down_new_from_strings(themes);
+    gtk_drop_down_set_selected(GTK_DROP_DOWN(theme),general_theme());
+    adw_message_dialog_set_extra_child(d,theme);
+    g_object_set_data(G_OBJECT(d),"theme",theme);
+    adw_message_dialog_add_response(d,"close",tr("Close"));
+    adw_message_dialog_add_response(d,"save",tr("Save preferences"));
+    adw_message_dialog_add_response(d,"reset",tr("Reset printing defaults"));
+    adw_message_dialog_set_response_appearance(d,"reset",ADW_RESPONSE_DESTRUCTIVE);
+    adw_message_dialog_set_close_response(d,"close");
+    g_signal_connect(d,"response",G_CALLBACK(+[](AdwMessageDialog* dialog,const char* response,gpointer user){
+        auto* state=static_cast<State*>(user);
+        if(g_strcmp0(response,"save")==0) {
+            auto* widget=GTK_DROP_DOWN(g_object_get_data(G_OBJECT(dialog),"theme"));
+            int value=static_cast<int>(gtk_drop_down_get_selected(widget));
+            std::unique_ptr<GKeyFile,decltype(&g_key_file_free)> file(g_key_file_new(),g_key_file_free);
+            g_key_file_set_integer(file.get(),"general","theme",value);
+            const auto path=general_path();
+            if(g_mkdir_with_parents(std::filesystem::path(path).parent_path().c_str(),0700)==0 &&
+               g_key_file_save_to_file(file.get(),path.c_str(),nullptr)) apply_theme(value);
+            else status(state,tr("Could not save preferences"));
+        } else if(g_strcmp0(response,"reset")==0) {
+            auto* confirm=ADW_MESSAGE_DIALOG(adw_message_dialog_new(GTK_WINDOW(state->window),tr("Reset printing defaults"),tr("Remove saved printing defaults? Named profiles and calibration will be kept. Reopen the application to use factory defaults.")));
+            adw_message_dialog_add_response(confirm,"cancel",tr("Close"));
+            adw_message_dialog_add_response(confirm,"reset",tr("Reset printing defaults"));
+            adw_message_dialog_set_response_appearance(confirm,"reset",ADW_RESPONSE_DESTRUCTIVE);
+            adw_message_dialog_set_close_response(confirm,"cancel");
+            g_signal_connect(confirm,"response",G_CALLBACK(+[](AdwMessageDialog*,const char* answer,gpointer ptr){
+                if(g_strcmp0(answer,"reset")!=0) return;
+                std::error_code error;
+                std::filesystem::remove(preferences_path(),error);
+                status(static_cast<State*>(ptr),error?error.message():tr("Printing defaults reset; reopen the application."));
+            }),state);
+            gtk_window_present(GTK_WINDOW(confirm));
+        }
+    }),s);
+    gtk_window_present(GTK_WINDOW(d));
+}
 static void activate(GApplication* application,gpointer) {
-    adw_style_manager_set_color_scheme(adw_style_manager_get_default(),ADW_COLOR_SCHEME_DEFAULT);
+    apply_theme(general_theme());
     auto state=std::make_unique<State>();
     auto* s=state.get();
     s->window=adw_application_window_new(GTK_APPLICATION(application));
@@ -887,6 +940,10 @@ static void activate(GApplication* application,gpointer) {
     gtk_widget_set_tooltip_text(virtual_button,tr("Virtual printer"));
     g_signal_connect(virtual_button,"clicked",G_CALLBACK(virtual_settings),s->window);
     adw_header_bar_pack_end(ADW_HEADER_BAR(header),virtual_button);
+    auto* settings=gtk_button_new_from_icon_name("emblem-system-symbolic");
+    gtk_widget_set_tooltip_text(settings,tr("General settings"));
+    g_signal_connect(settings,"clicked",G_CALLBACK(general_clicked),s);
+    adw_header_bar_pack_end(ADW_HEADER_BAR(header),settings);
     auto* body=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,0);
     gtk_widget_set_vexpand(body,TRUE);
     gtk_widget_set_hexpand(body,TRUE);

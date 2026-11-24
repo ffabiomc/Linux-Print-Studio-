@@ -697,6 +697,53 @@ static void reverse_backs_changed(GtkCheckButton*,gpointer data) {
     update_page(s);
 }
 static GtkWidget* label(const char* text){auto* w=gtk_label_new(tr(text));gtk_widget_set_halign(w,GTK_ALIGN_START);return w;}
+static bool virtual_command(const char* const* args) {
+    GError* error=nullptr;
+    auto* process=g_subprocess_newv(args,G_SUBPROCESS_FLAGS_NONE,&error);
+    bool ok=process && g_subprocess_wait_check(process,nullptr,&error);
+    if(process) g_object_unref(process);
+    if(error) g_error_free(error);
+    return ok;
+}
+static bool virtual_installed() {
+    const char* args[]={"/usr/bin/lpstat","-p","Linux_Print_Studio",nullptr};
+    return virtual_command(args);
+}
+static void virtual_settings(GtkButton*,gpointer data) {
+    auto* window=GTK_WINDOW(data);
+    const bool installed=virtual_installed();
+    const char* active_args[]={"/usr/bin/systemctl","--user","is-active","--quiet","lps-receive.service",nullptr};
+    const bool active=virtual_command(active_args);
+    auto* dialog=adw_message_dialog_new(window,tr("Virtual printer"),
+        installed?(active?tr("Virtual printer installed; receiver running."):tr("Virtual printer installed; receiver stopped.")):tr("Install the virtual printer to receive documents from other applications."));
+    auto* d=ADW_MESSAGE_DIALOG(dialog);
+    adw_message_dialog_add_response(d,"close",tr("Close"));
+    adw_message_dialog_add_response(d,"install",installed?tr("Repair"):tr("Install"));
+    adw_message_dialog_set_response_appearance(d,"install",ADW_RESPONSE_SUGGESTED);
+    if(installed) {
+        adw_message_dialog_add_response(d,"remove",tr("Remove"));
+        adw_message_dialog_set_response_appearance(d,"remove",ADW_RESPONSE_DESTRUCTIVE);
+    }
+    adw_message_dialog_set_close_response(d,"close");
+    g_signal_connect(d,"response",G_CALLBACK(+[](AdwMessageDialog* dialog,const char* response,gpointer){
+        if(g_strcmp0(response,"close")==0) return;
+        bool remove=g_strcmp0(response,"remove")==0;
+        const char* args[]={"/usr/bin/pkexec","/usr/bin/lps-virtual-printer",remove?"remove":"install",nullptr};
+        bool ok=virtual_command(args);
+        if(ok) {
+            const char* reload[]={"/usr/bin/systemctl","--user","daemon-reload",nullptr};
+            const char* service[]={"/usr/bin/systemctl","--user",remove?"disable":"enable","--now","lps-receive.service",nullptr};
+            ok=virtual_command(reload) && virtual_command(service);
+        }
+        auto* parent=gtk_window_get_transient_for(GTK_WINDOW(dialog));
+        auto* result=ADW_MESSAGE_DIALOG(adw_message_dialog_new(parent,tr("Virtual printer"),
+            ok?tr("Configuration completed."):tr("Configuration failed or authorization was cancelled.")));
+        adw_message_dialog_add_response(result,"ok",tr("Close"));
+        adw_message_dialog_set_close_response(result,"ok");
+        gtk_window_present(GTK_WINDOW(result));
+    }),nullptr);
+    gtk_window_present(GTK_WINDOW(d));
+}
 static void activate(GApplication* application,gpointer) {
     adw_style_manager_set_color_scheme(adw_style_manager_get_default(),ADW_COLOR_SCHEME_DEFAULT);
     auto state=std::make_unique<State>();
@@ -713,6 +760,10 @@ static void activate(GApplication* application,gpointer) {
     auto* open=gtk_button_new_with_label(tr("Open PDF"));
     g_signal_connect(open,"clicked",G_CALLBACK(open_clicked),s);
     adw_header_bar_pack_start(ADW_HEADER_BAR(header),open);
+    auto* virtual_button=gtk_button_new_from_icon_name("printer-symbolic");
+    gtk_widget_set_tooltip_text(virtual_button,tr("Virtual printer"));
+    g_signal_connect(virtual_button,"clicked",G_CALLBACK(virtual_settings),s->window);
+    adw_header_bar_pack_end(ADW_HEADER_BAR(header),virtual_button);
     auto* body=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,0);
     gtk_widget_set_vexpand(body,TRUE);
     gtk_widget_set_hexpand(body,TRUE);
@@ -933,6 +984,11 @@ static void activate(GApplication* application,gpointer) {
     gtk_box_append(GTK_BOX(outer),s->status);
     update_page(s);
     gtk_window_present(GTK_WINDOW(s->window));
+    if(!g_getenv("LPS_SMOKE_TEST") && !virtual_installed() &&
+       !g_object_get_data(G_OBJECT(application),"virtual-prompted")) {
+        g_object_set_data(G_OBJECT(application),"virtual-prompted",GINT_TO_POINTER(1));
+        virtual_settings(nullptr,s->window);
+    }
     if(g_getenv("LPS_SMOKE_TEST")) {
         g_timeout_add(1000,+[](gpointer app)->gboolean {
             g_application_quit(G_APPLICATION(app));

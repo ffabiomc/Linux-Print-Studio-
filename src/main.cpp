@@ -892,7 +892,7 @@ static void general_clicked(GtkButton*,gpointer data) {
     adw_message_dialog_add_response(d,"reset",tr("Reset printing defaults"));
     adw_message_dialog_set_response_appearance(d,"reset",ADW_RESPONSE_DESTRUCTIVE);
     adw_message_dialog_set_close_response(d,"close");
-    g_signal_connect(d,"response",G_CALLBACK(+[](AdwMessageDialog* dialog,const char* response,gpointer user){
+    g_signal_connect(d,"response",G_CALLBACK((+[](AdwMessageDialog* dialog,const char* response,gpointer user){
         auto* state=static_cast<State*>(user);
         if(g_strcmp0(response,"save")==0) {
             auto* widget=GTK_DROP_DOWN(g_object_get_data(G_OBJECT(dialog),"theme"));
@@ -917,7 +917,7 @@ static void general_clicked(GtkButton*,gpointer data) {
             }),state);
             gtk_window_present(GTK_WINDOW(confirm));
         }
-    }),s);
+    })),s);
     gtk_window_present(GTK_WINDOW(d));
 }
 static void activate(GApplication* application,gpointer) {

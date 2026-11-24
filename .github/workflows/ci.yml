@@ -227,3 +227,60 @@ jobs:
           path: |
             *.rpm
             SHA256SUMS-opensuse
+
+  arch-linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    container:
+      image: archlinux:base-devel
+    steps:
+      - name: Dependencies
+        run: pacman -Syu --noconfirm --needed git cmake ninja gtk4 libadwaita poppler-glib cairo cups gettext desktop-file-utils python polkit
+      - uses: actions/checkout@v4
+      - name: Build native package
+        shell: bash
+        run: |
+          useradd -m builder
+          mkdir -p /tmp/lps-build
+          cp -a . /tmp/lps-build/
+          cd /tmp/lps-build
+          cat > PKGBUILD <<'PKG'
+          pkgname=linux-print-studio-cpp
+          pkgver=1.0.2
+          pkgrel=${{ github.run_number }}
+          pkgdesc='Native GTK4 PDF printing studio'
+          arch=('x86_64')
+          url='https://github.com/ffabiomc/Linux-Print-Studio-'
+          license=('MIT')
+          depends=('gtk4' 'libadwaita' 'poppler-glib' 'cairo' 'cups' 'python' 'systemd' 'polkit')
+          makedepends=('cmake' 'ninja' 'gettext' 'desktop-file-utils')
+          build() {
+            cmake -S "$startdir" -B "$srcdir/build" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DLPS_CUPS_BACKEND_DIR=lib/cups/backend
+            cmake --build "$srcdir/build" --parallel 2
+          }
+          check() {
+            ctest --test-dir "$srcdir/build" --output-on-failure
+            desktop-file-validate "$startdir/data/io.github.ffabiomc.LinuxPrintStudio.desktop"
+            for lang in pt_BR pt_PT es fr de it ru zh_CN ja ko ar fi sv; do
+              msgfmt --check-format -o /dev/null "$startdir/po/$lang.po"
+            done
+          }
+          package() {
+            DESTDIR="$pkgdir" cmake --install "$srcdir/build"
+          }
+          PKG
+          chown -R builder:builder /tmp/lps-build
+          runuser -u builder -- makepkg --noconfirm
+          pacman -U --noconfirm ./*.pkg.tar.zst
+          for lang in pt_BR pt_PT es fr de it ru zh_CN ja ko ar fi sv; do
+            test -s "/usr/share/locale/$lang/LC_MESSAGES/linux-print-studio.mo"
+          done
+          cp ./*.pkg.tar.zst "$GITHUB_WORKSPACE/"
+          cd "$GITHUB_WORKSPACE"
+          sha256sum *.pkg.tar.zst > SHA256SUMS-arch
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-print-studio-cpp-arch-build-${{ github.run_number }}
+          path: |
+            *.pkg.tar.zst
+            SHA256SUMS-arch

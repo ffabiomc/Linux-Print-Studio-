@@ -43,3 +43,6 @@ install(FILES data/io.github.ffabiomc.LinuxPrintStudio.svg DESTINATION "${CMAKE_
 set(LPS_CUPS_BACKEND_DIR "lib/cups/backend" CACHE STRING "CUPS backend directory relative to prefix")
 install(PROGRAMS scripts/lps-virtual-printer DESTINATION bin)
 install(FILES scripts/lps DESTINATION "${LPS_CUPS_BACKEND_DIR}" PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)
+
+install(PROGRAMS scripts/lps-receive DESTINATION bin)
+install(FILES data/lps-receive.service DESTINATION lib/systemd/user)

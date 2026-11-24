@@ -333,3 +333,12 @@ msgstr "Configuração concluída."
 
 msgid "Configuration failed or authorization was cancelled."
 msgstr "Falha na configuração ou autorização cancelada."
+
+msgid "Save preferences"
+msgstr "Salvar preferências"
+
+msgid "Could not save preferences"
+msgstr "Não foi possível salvar as preferências"
+
+msgid "Printing preferences saved"
+msgstr "Preferências de impressão salvas"

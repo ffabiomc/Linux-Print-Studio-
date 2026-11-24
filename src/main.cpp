@@ -110,7 +110,7 @@ static void save_duplex_profile(State* s) {
 }
 static void load_duplex_profile(State* s) {
     if(!s->feed_direction || !s->reverse_backs) return;
-    ObjectPtr<GKeyFile> file(g_key_file_new());
+    std::unique_ptr<GKeyFile,decltype(&g_key_file_free)> file(g_key_file_new(),g_key_file_free);
     const auto path=duplex_profile_path();
     const auto printer=selected_printer_name(s);
     if(printer.empty() || !g_key_file_load_from_file(file.get(),path.c_str(),G_KEY_FILE_NONE,nullptr)) return;
@@ -759,6 +759,56 @@ static void virtual_settings(GtkButton*,gpointer data) {
     })),nullptr);
     gtk_window_present(GTK_WINDOW(d));
 }
+static std::string preferences_path() {
+    return std::string(g_get_user_config_dir())+"/linux-print-studio/preferences.ini";
+}
+static void save_preferences(GtkButton*,gpointer data) {
+    auto* s=static_cast<State*>(data);
+    std::unique_ptr<GKeyFile,decltype(&g_key_file_free)> file(g_key_file_new(),g_key_file_free);
+    const char* group="printing";
+    g_key_file_set_string(file.get(),group,"printer",selected_printer_name(s).c_str());
+    const std::pair<const char*,GtkWidget*> controls[]={{"layout",s->layout},{"orientation",s->orientation},{"paper",s->paper},{"color",s->color_control},{"quality",s->quality_control},{"duplex",s->duplex},{"zoom",s->zoom}};
+    for(const auto& [key,widget]:controls)
+        g_key_file_set_integer(file.get(),group,key,static_cast<int>(gtk_drop_down_get_selected(GTK_DROP_DOWN(widget))));
+    g_key_file_set_double(file.get(),group,"scale",gtk_spin_button_get_value(GTK_SPIN_BUTTON(s->scale_control)));
+    g_key_file_set_double(file.get(),group,"margin",gtk_spin_button_get_value(GTK_SPIN_BUTTON(s->margin_control)));
+    g_key_file_set_boolean(file.get(),group,"center",gtk_check_button_get_active(GTK_CHECK_BUTTON(s->center_control)));
+    const auto path=preferences_path();
+    if(g_mkdir_with_parents(std::filesystem::path(path).parent_path().c_str(),0700)!=0 ||
+       !g_key_file_save_to_file(file.get(),path.c_str(),nullptr)) {
+        status(s,tr("Could not save preferences"));return;
+    }
+    status(s,tr("Printing preferences saved"));
+}
+static void restore_preferences(State* s) {
+    std::unique_ptr<GKeyFile,decltype(&g_key_file_free)> file(g_key_file_new(),g_key_file_free);
+    if(!g_key_file_load_from_file(file.get(),preferences_path().c_str(),G_KEY_FILE_NONE,nullptr)) return;
+    const char* group="printing";
+    OwnedString printer(g_key_file_get_string(file.get(),group,"printer",nullptr));
+    if(printer) {
+        auto it=std::find(s->printer_names.begin(),s->printer_names.end(),printer.get());
+        if(it!=s->printer_names.end()) gtk_drop_down_set_selected(GTK_DROP_DOWN(s->printer),static_cast<guint>(it-s->printer_names.begin()));
+    }
+    const std::pair<const char*,GtkWidget*> controls[]={{"layout",s->layout},{"orientation",s->orientation},{"paper",s->paper},{"color",s->color_control},{"quality",s->quality_control},{"duplex",s->duplex},{"zoom",s->zoom}};
+    for(const auto& [key,widget]:controls) {
+        GError* error=nullptr;
+        const int value=g_key_file_get_integer(file.get(),group,key,&error);
+        if(!error && value>=0 && static_cast<guint>(value)<g_list_model_get_n_items(gtk_drop_down_get_model(GTK_DROP_DOWN(widget))))
+            gtk_drop_down_set_selected(GTK_DROP_DOWN(widget),static_cast<guint>(value));
+        g_clear_error(&error);
+    }
+    const std::pair<const char*,GtkWidget*> spins[]={{"scale",s->scale_control},{"margin",s->margin_control}};
+    for(const auto& [key,widget]:spins) {
+        GError* error=nullptr;
+        const double value=g_key_file_get_double(file.get(),group,key,&error);
+        if(!error && std::isfinite(value)) gtk_spin_button_set_value(GTK_SPIN_BUTTON(widget),value);
+        g_clear_error(&error);
+    }
+    GError* error=nullptr;
+    const bool center=g_key_file_get_boolean(file.get(),group,"center",&error);
+    if(!error) gtk_check_button_set_active(GTK_CHECK_BUTTON(s->center_control),center);
+    g_clear_error(&error);
+}
 static void activate(GApplication* application,gpointer) {
     adw_style_manager_set_color_scheme(adw_style_manager_get_default(),ADW_COLOR_SCHEME_DEFAULT);
     auto state=std::make_unique<State>();
@@ -997,6 +1047,10 @@ static void activate(GApplication* application,gpointer) {
     gtk_widget_set_margin_start(s->status,16);
     gtk_widget_set_margin_bottom(s->status,8);
     gtk_box_append(GTK_BOX(outer),s->status);
+    auto* save_defaults=gtk_button_new_with_label(tr("Save preferences"));
+    g_signal_connect(save_defaults,"clicked",G_CALLBACK(save_preferences),s);
+    gtk_box_append(GTK_BOX(side),save_defaults);
+    restore_preferences(s);
     update_page(s);
     gtk_window_present(GTK_WINDOW(s->window));
     if(!g_getenv("LPS_SMOKE_TEST") && !virtual_installed() &&

@@ -402,3 +402,12 @@ msgstr "¿Eliminar los valores de impresión guardados? Se conservarán los perf
 
 msgid "Printing defaults reset; reopen the application."
 msgstr "Valores de impresión restablecidos; vuelva a abrir la aplicación."
+
+msgid "Language"
+msgstr "Idioma"
+
+msgid "System language"
+msgstr "Idioma del sistema"
+
+msgid "Language changed; reopen the application."
+msgstr "Idioma cambiado; vuelva a abrir la aplicación."

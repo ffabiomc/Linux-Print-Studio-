@@ -204,10 +204,13 @@ static gboolean preview_resize_tick(GtkWidget*,GdkFrameClock*,gpointer data) {
 }
 static void preview_draw(GtkDrawingArea*,cairo_t* cr,int width,int height,gpointer data) {
     auto* s=static_cast<State*>(data);
-    cairo_set_source_rgb(cr,.88,.89,.91);
+    const bool dark=adw_style_manager_get_dark(adw_style_manager_get_default());
+    if(dark) cairo_set_source_rgb(cr,.19,.20,.22);
+    else cairo_set_source_rgb(cr,.88,.89,.91);
     cairo_paint(cr);
     if(!s->doc) {
-        cairo_set_source_rgb(cr,.42,.46,.51);
+        if(dark) cairo_set_source_rgb(cr,.72,.75,.79);
+        else cairo_set_source_rgb(cr,.42,.46,.51);
         cairo_set_line_width(cr,3);
         const double cx=width/2.0,cy=height/2.0-28;
         cairo_rectangle(cr,cx-25,cy-35,50,70);cairo_stroke(cr);
@@ -699,6 +702,7 @@ static void activate(GApplication* application,gpointer) {
     auto* s=state.get();
     s->window=adw_application_window_new(GTK_APPLICATION(application));
     gtk_window_set_title(GTK_WINDOW(s->window),tr("Linux Print Studio"));
+    gtk_window_set_icon_name(GTK_WINDOW(s->window),"io.github.ffabiomc.LinuxPrintStudio");
     gtk_window_set_default_size(GTK_WINDOW(s->window),1080,720);
     g_object_set_data_full(G_OBJECT(s->window),"state",state.release(),[](gpointer p){std::unique_ptr<State> owned(static_cast<State*>(p));});
     auto* outer=gtk_box_new(GTK_ORIENTATION_VERTICAL,0);
@@ -871,6 +875,7 @@ static void activate(GApplication* application,gpointer) {
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(s->scroller),s->preview);
     gtk_widget_add_tick_callback(s->scroller,preview_resize_tick,s,nullptr);
     gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(s->preview),preview_draw,s,nullptr);
+    g_signal_connect_object(adw_style_manager_get_default(),"notify::dark",G_CALLBACK(+[](GObject*,GParamSpec*,GtkWidget* preview){gtk_widget_queue_draw(preview);}),s->preview,G_CONNECT_DEFAULT);
     gtk_box_append(GTK_BOX(main),s->scroller);
     auto* drop=gtk_drop_target_new(G_TYPE_FILE,GDK_ACTION_COPY);
     g_signal_connect(drop,"drop",G_CALLBACK(dropped_file),s);
@@ -912,6 +917,7 @@ int main(int argc,char** argv) {
     bind_textdomain_codeset("linux-print-studio","UTF-8");
     ObjectPtr<AdwApplication> app(adw_application_new("io.github.ffabiomc.LinuxPrintStudio",G_APPLICATION_DEFAULT_FLAGS));
     g_signal_connect(app.get(),"activate",G_CALLBACK(activate),nullptr);
+    adw_style_manager_set_color_scheme(adw_style_manager_get_default(),ADW_COLOR_SCHEME_DEFAULT);
     int result=g_application_run(G_APPLICATION(app.get()),argc,argv);
     return result;
 }

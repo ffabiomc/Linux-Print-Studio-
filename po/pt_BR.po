@@ -402,3 +402,12 @@ msgstr "Remover as preferências de impressão salvas? Os perfis e a calibraçã
 
 msgid "Printing defaults reset; reopen the application."
 msgstr "Padrões de impressão restaurados; reabra o aplicativo."
+
+msgid "Language"
+msgstr "Idioma"
+
+msgid "System language"
+msgstr "Idioma do sistema"
+
+msgid "Language changed; reopen the application."
+msgstr "Idioma alterado; reabra o aplicativo."

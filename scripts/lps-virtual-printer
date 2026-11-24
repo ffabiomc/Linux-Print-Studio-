@@ -1,0 +1,16 @@
+#!/bin/sh
+set -eu
+queue=Linux_Print_Studio
+case "${1:-}" in
+  install)
+    test "$(id -u)" -eq 0 || { echo "Run as administrator" >&2; exit 1; }
+    test -x /usr/lib/cups/backend/lps || test -x /usr/libexec/cups/backend/lps || { echo "Linux Print Studio backend is not installed" >&2; exit 1; }
+    lpadmin -p "$queue" -D "Linux Print Studio" -v lps:/local -m raw -o printer-is-shared=false -E
+    ;;
+  remove)
+    test "$(id -u)" -eq 0 || exit 1
+    lpadmin -x "$queue"
+    ;;
+  status) lpstat -p "$queue" ;;
+  *) echo "Usage: lps-virtual-printer install|remove|status" >&2; exit 2 ;;
+esac

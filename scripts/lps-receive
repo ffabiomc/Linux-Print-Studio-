@@ -20,19 +20,23 @@ while True:
                 if not stat.S_ISDIR(info.st_mode) or info.st_uid != uid or info.st_mode & 0o077:
                     continue
                 source = folder / 'document.pdf'
+                if not source.exists():
+                    continue
                 fd = os.open(source, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
                 with os.fdopen(fd, 'rb') as stream:
                     info = os.fstat(stream.fileno())
                     if not stat.S_ISREG(info.st_mode) or info.st_uid != uid or info.st_size > 512 * 1024 * 1024:
                         continue
-                    with tempfile.TemporaryDirectory(prefix='lps-print-', dir=runtime) as work:
-                        target = pathlib.Path(work) / 'document.pdf'
-                        with target.open('wb') as out:
-                            shutil.copyfileobj(stream, out)
-                        # Keep the PDF available until the application exits.
-                        result = subprocess.run(['/usr/bin/linux-print-studio', str(target)])
-                        if result.returncode == 0:
-                            source.unlink()
+                    work = tempfile.mkdtemp(prefix='lps-print-', dir=runtime)
+                    target = pathlib.Path(work) / 'document.pdf'
+                    with target.open('xb') as out:
+                        os.fchmod(out.fileno(), 0o600)
+                        shutil.copyfileobj(stream, out)
+                    result = subprocess.run(['/usr/bin/linux-print-studio', str(target)])
+                    if result.returncode == 0:
+                        source.unlink()
+                    else:
+                        shutil.rmtree(work)
             except (OSError, subprocess.SubprocessError) as error:
                 print(error, flush=True)
     except OSError as error:

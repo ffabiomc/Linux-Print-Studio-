@@ -43,7 +43,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Fedora dependencies
-        run: dnf install -y gcc-c++ cmake ninja-build pkgconf-pkg-config gtk4-devel libadwaita-devel poppler-glib-devel cairo-devel cups-devel rpm-build gettext desktop-file-utils
+        run: dnf install -y gcc-c++ cmake ninja-build pkgconf-pkg-config gtk4-devel libadwaita-devel poppler-glib-devel cairo-devel cups-devel rpm-build gettext desktop-file-utils xorg-x11-server-Xvfb dbus-daemon
       - name: Configure
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
       - name: Build

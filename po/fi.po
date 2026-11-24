@@ -1,0 +1,404 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: fi\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Linux Print Studio"
+msgstr "Linux Print Studio"
+
+msgid "Open PDF"
+msgstr "Avaa PDF"
+
+msgid "Normal"
+msgstr "Normaali"
+
+msgid "Booklet"
+msgstr "Vihko"
+
+msgid "2 pages / sheet"
+msgstr "2 sivua arkille"
+
+msgid "4 pages / sheet"
+msgstr "4 sivua arkille"
+
+msgid "6 pages / sheet"
+msgstr "6 sivua arkille"
+
+msgid "9 pages / sheet"
+msgstr "9 sivua arkille"
+
+msgid "16 pages / sheet"
+msgstr "16 sivua arkille"
+
+msgid "Automatic"
+msgstr "Automaattinen"
+
+msgid "Portrait"
+msgstr "Pysty"
+
+msgid "Landscape"
+msgstr "Vaaka"
+
+msgid "A4"
+msgstr "A4"
+
+msgid "Letter"
+msgstr "Letter"
+
+msgid "Legal"
+msgstr "Legal"
+
+msgid "One-sided"
+msgstr "Yksipuolinen"
+
+msgid "Automatic (long edge)"
+msgstr "Automaattinen (pitkä reuna)"
+
+msgid "Automatic (short edge)"
+msgstr "Automaattinen (lyhyt reuna)"
+
+msgid "Manual (two passes)"
+msgstr "Manuaalinen (kaksi vaihetta)"
+
+msgid "All sheets"
+msgstr "Kaikki arkit"
+
+msgid "Front pass"
+msgstr "Etupuolten tulostus"
+
+msgid "Back pass"
+msgstr "Takapuolten tulostus"
+
+msgid "Page layout"
+msgstr "Sivuasettelu"
+
+msgid "Orientation"
+msgstr "Suunta"
+
+msgid "Paper size"
+msgstr "Paperikoko"
+
+msgid "Printer"
+msgstr "Tulostin"
+
+msgid "Copies"
+msgstr "Kopiot"
+
+msgid "Duplex mode"
+msgstr "Kaksipuolinen tulostus"
+
+msgid "Reverse back-side order"
+msgstr "Käännä takapuolten järjestys"
+
+msgid "1. Print fronts"
+msgstr "1. Tulosta etupuolet"
+
+msgid "2. Print backs (after reloading paper)"
+msgstr "2. Tulosta takapuolet (paperin uudelleenlatauksen jälkeen)"
+
+msgid "Calibration: print front"
+msgstr "Kalibrointi: tulosta etupuoli"
+
+msgid "Calibration: print back"
+msgstr "Kalibrointi: tulosta takapuoli"
+
+msgid "Export PDF"
+msgstr "Vie PDF"
+
+msgid "Print"
+msgstr "Tulosta"
+
+msgid "Previous"
+msgstr "Edellinen"
+
+msgid "Next"
+msgstr "Seuraava"
+
+msgid "No document"
+msgstr "Ei asiakirjaa"
+
+msgid "Open a PDF to begin"
+msgstr "Aloita avaamalla PDF"
+
+msgid "No sides in this pass"
+msgstr "Ei tulostettavia puolia tässä vaiheessa"
+
+msgid "Front"
+msgstr "Etupuoli"
+
+msgid "Back"
+msgstr "Takapuoli"
+
+msgid "Sheet"
+msgstr "Arkki"
+
+msgid "Open a PDF first"
+msgstr "Avaa ensin PDF"
+
+msgid "Select a printer"
+msgstr "Valitse tulostin"
+
+msgid "No back sides required"
+msgstr "Takapuolia ei tarvitse tulostaa"
+
+msgid "Invalid path"
+msgstr "Virheellinen polku"
+
+msgid "Could not open PDF"
+msgstr "PDF-tiedostoa ei voitu avata"
+
+msgid "PDF documents"
+msgstr "PDF-asiakirjat"
+
+msgid "Open"
+msgstr "Avaa"
+
+msgid "Cancel"
+msgstr "Peruuta"
+
+msgid "Manual duplex: click Print fronts first, then reload paper and click Print backs"
+msgstr "Manuaalinen kaksipuolinen tulostus: tulosta ensin etupuolet, aseta paperi uudelleen ja tulosta takapuolet"
+
+msgid "Print job submitted"
+msgstr "Tulostustyö lähetetty"
+
+msgid "Back sides submitted; check paper orientation"
+msgstr "Takapuolet lähetetty tulostettaviksi; tarkista paperin suunta"
+
+msgid "Open a PDF to preview and configure printing"
+msgstr "Avaa PDF esikatselua ja tulostusasetuksia varten"
+
+msgid "Only local PDF files are supported"
+msgstr "Vain paikallisia PDF-tiedostoja tuetaan"
+
+msgid "Drop a PDF file"
+msgstr "Pudota PDF-tiedosto tähän"
+
+msgid "Zoom"
+msgstr "Zoomaus"
+
+msgid "Fit page"
+msgstr "Sovita sivulle"
+
+msgid "Fit width"
+msgstr "Sovita leveyteen"
+
+msgid "pages"
+msgstr "sivua"
+
+msgid "sheets"
+msgstr "arkkia"
+
+msgid "Refresh printers"
+msgstr "Päivitä tulostinluettelo"
+
+msgid "No printers configured"
+msgstr "Tulostimia ei ole määritetty"
+
+msgid "Pages to print"
+msgstr "Tulostettavat sivut"
+
+msgid "All pages"
+msgstr "Kaikki sivut"
+
+msgid "Even pages"
+msgstr "Parilliset sivut"
+
+msgid "Odd pages"
+msgstr "Parittomat sivut"
+
+msgid "Custom range"
+msgstr "Mukautettu sivualue"
+
+msgid "Invalid page range"
+msgstr "Virheellinen sivualue"
+
+msgid "Invalid page range; use e.g. 1-5, 8, 12-15"
+msgstr "Virheellinen sivualue; käytä esimerkiksi 1-5, 8, 12-15"
+
+msgid "Advanced settings"
+msgstr "Lisäasetukset"
+
+msgid "Scale (%)"
+msgstr "Mittakaava (%)"
+
+msgid "Margins (mm)"
+msgstr "Marginaalit (mm)"
+
+msgid "Center content"
+msgstr "Keskitä sisältö"
+
+msgid "Color mode"
+msgstr "Väritila"
+
+msgid "Color"
+msgstr "Väri"
+
+msgid "Grayscale"
+msgstr "Harmaasävy"
+
+msgid "Print quality"
+msgstr "Tulostuslaatu"
+
+msgid "Printer default"
+msgstr "Tulostimen oletus"
+
+msgid "Draft"
+msgstr "Luonnos"
+
+msgid "Normal quality"
+msgstr "Normaali laatu"
+
+msgid "High quality"
+msgstr "Korkea laatu"
+
+msgid "Select a PDF and printer to begin"
+msgstr "Aloita valitsemalla PDF ja tulostin"
+
+msgid "Step 1 of 3: Print the front sides"
+msgstr "Vaihe 1/3: tulosta etupuolet"
+
+msgid "Step 2 of 3: Reload paper and confirm"
+msgstr "Vaihe 2/3: aseta paperi uudelleen ja vahvista"
+
+msgid "Step 3 of 3: Print the back sides"
+msgstr "Vaihe 3/3: tulosta takapuolet"
+
+msgid "Only front sides are needed"
+msgstr "Vain etupuolet on tulostettava"
+
+msgid "Paper reloaded and printer has finished"
+msgstr "Paperi on asetettu uudelleen ja tulostin on valmis"
+
+msgid "3. Print backs"
+msgstr "3. Tulosta takapuolet"
+
+msgid "Paper reload orientation (calibrate first)"
+msgstr "Paperin uudelleenasetussuunta (kalibroi ensin)"
+
+msgid "Not calibrated"
+msgstr "Ei kalibroitu"
+
+msgid "Top edge first"
+msgstr "Yläreuna edellä"
+
+msgid "Bottom edge first"
+msgstr "Alareuna edellä"
+
+msgid "Save calibration for printer"
+msgstr "Tallenna tulostimen kalibrointi"
+
+msgid "Calibration saved for this printer"
+msgstr "Tämän tulostimen kalibrointi tallennettu"
+
+msgid "Could not save calibration"
+msgstr "Kalibrointia ei voitu tallentaa"
+
+msgid "After the front pass finishes, reload the stack with its top edge entering first, as verified by calibration."
+msgstr "Kun etupuolet on tulostettu, aseta paperipino uudelleen yläreuna edellä kalibroinnin mukaisesti."
+
+msgid "After the front pass finishes, reload the stack with its bottom edge entering first, as verified by calibration."
+msgstr "Kun etupuolet on tulostettu, aseta paperipino uudelleen alareuna edellä kalibroinnin mukaisesti."
+
+msgid "Paper orientation is not calibrated. Use the front/back calibration sheets before printing a large job."
+msgstr "Paperin suuntaa ei ole kalibroitu. Käytä etu- ja takapuolen kalibrointiarkkeja ennen suurta tulostustyötä."
+
+msgid "Virtual printer"
+msgstr "Virtuaalitulostin"
+
+msgid "Virtual printer installed; receiver running."
+msgstr "Virtuaalitulostin asennettu; vastaanottopalvelu käynnissä."
+
+msgid "Virtual printer installed; receiver stopped."
+msgstr "Virtuaalitulostin asennettu; vastaanottopalvelu pysäytetty."
+
+msgid "Install the virtual printer to receive documents from other applications."
+msgstr "Asenna virtuaalitulostin vastaanottaaksesi asiakirjoja muista sovelluksista."
+
+msgid "Repair"
+msgstr "Korjaa"
+
+msgid "Install"
+msgstr "Asenna"
+
+msgid "Remove"
+msgstr "Poista"
+
+msgid "Close"
+msgstr "Sulje"
+
+msgid "Configuration completed."
+msgstr "Määritys valmis."
+
+msgid "Configuration failed or authorization was cancelled."
+msgstr "Määritys epäonnistui tai valtuutus peruutettiin."
+
+msgid "Save preferences"
+msgstr "Tallenna asetukset"
+
+msgid "Could not save preferences"
+msgstr "Asetuksia ei voitu tallentaa"
+
+msgid "Printing preferences saved"
+msgstr "Tulostusasetukset tallennettu"
+
+msgid "Printing profiles"
+msgstr "Tulostusprofiilit"
+
+msgid "Select an existing profile or enter a new name."
+msgstr "Valitse olemassa oleva profiili tai anna uusi nimi."
+
+msgid "Profile name"
+msgstr "Profiilin nimi"
+
+msgid "Load profile"
+msgstr "Lataa profiili"
+
+msgid "Save profile"
+msgstr "Tallenna profiili"
+
+msgid "Delete profile"
+msgstr "Poista profiili"
+
+msgid "Invalid profile name"
+msgstr "Virheellinen profiilin nimi"
+
+msgid "Profile saved"
+msgstr "Profiili tallennettu"
+
+msgid "Profile loaded"
+msgstr "Profiili ladattu"
+
+msgid "Could not load profile"
+msgstr "Profiilia ei voitu ladata"
+
+msgid "Profile deleted"
+msgstr "Profiili poistettu"
+
+msgid "Could not delete profile"
+msgstr "Profiilia ei voitu poistaa"
+
+msgid "General settings"
+msgstr "Yleiset asetukset"
+
+msgid "Choose the application appearance."
+msgstr "Valitse sovelluksen ulkoasu."
+
+msgid "System theme"
+msgstr "Järjestelmän teema"
+
+msgid "Light theme"
+msgstr "Vaalea teema"
+
+msgid "Dark theme"
+msgstr "Tumma teema"
+
+msgid "Reset printing defaults"
+msgstr "Palauta tulostuksen oletusasetukset"
+
+msgid "Remove saved printing defaults? Named profiles and calibration will be kept. Reopen the application to use factory defaults."
+msgstr "Poistetaanko tallennetut tulostuksen oletusasetukset? Nimetyt profiilit ja kalibrointi säilytetään. Käynnistä sovellus uudelleen käyttääksesi tehdasasetuksia."
+
+msgid "Printing defaults reset; reopen the application."
+msgstr "Tulostuksen oletusasetukset palautettu; käynnistä sovellus uudelleen."

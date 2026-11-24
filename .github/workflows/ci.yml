@@ -39,7 +39,7 @@ jobs:
           dpkg-deb --root-owner-group --build pkg linux-print-studio-cpp_1.0.2-${{ github.run_number }}_amd64.deb
           sudo apt-get install -y ./linux-print-studio-cpp_*.deb
           for lang in pt_BR pt_PT es fr de it ru zh_CN ja ko ar fi sv; do
-            test -s "/usr/share/locale/$lang/LC_MESSAGES/linux-print-studio.mo"
+            test -s "/usr/share/locale/$lang/LC_MESSAGES/linux-print-studio.mo" || { echo "Missing installed catalog: $lang"; exit 1; }
           done
           timeout 30s xvfb-run -a dbus-run-session -- env LPS_SMOKE_TEST=1 GSK_RENDERER=cairo /usr/bin/linux-print-studio
           sha256sum *.deb > SHA256SUMS-deb
@@ -127,6 +127,12 @@ jobs:
           sed -i "s|%{_topdir}/../../staging|$PWD/staging|" rpmbuild/SPECS/linux-print-studio-cpp.spec
           rpmbuild -bb --define "_topdir $PWD/rpmbuild" rpmbuild/SPECS/linux-print-studio-cpp.spec
           cp rpmbuild/RPMS/x86_64/*.rpm .
+          rpm -qlp ./linux-print-studio-cpp-*.rpm > rpm-files.txt
+          for lang in pt_BR pt_PT es fr de it ru zh_CN ja ko ar fi sv; do
+            grep -Fx "/usr/share/locale/$lang/LC_MESSAGES/linux-print-studio.mo" rpm-files.txt
+          done
+          printf '%%_install_langs all\n' > /etc/rpm/macros.image-language-conf
+          rpm --eval '%_install_langs'
           dnf install -y ./linux-print-studio-cpp-*.rpm
           for lang in pt_BR pt_PT es fr de it ru zh_CN ja ko ar fi sv; do
             test -s "/usr/share/locale/$lang/LC_MESSAGES/linux-print-studio.mo"

@@ -29,7 +29,7 @@ def document_name(folder):
             title = json.loads(stream.read(8193)).get('title', '')
         title = unicodedata.normalize('NFC', title)
         title = re.sub(r'[/\\\\\x00-\x1f\x7f]', '_', title).strip(' .')
-        title = re.sub(r'\.(pdf|odt|docx?|ods|xlsx?|odp|pptx?)
+        title = re.sub(r'\.(pdf|odt|docx?|ods|xlsx?|odp|pptx?)$', '', title, flags=re.IGNORECASE)
         return (title.encode('utf-8')[:180].decode('utf-8', 'ignore') or 'document') + '.pdf'
     except (OSError, ValueError, TypeError, AttributeError):
         return 'document.pdf'
@@ -85,47 +85,6 @@ while True:
                     # Keep the spool copy until the launch process exits successfully.
             except (OSError, subprocess.SubprocessError) as error:
                 retry_at[folder] = time.monotonic() + 30
-                print(error, flush=True)
-    except OSError as error:
-        print(error, flush=True)
-    time.sleep(3)
-, '', title, flags=re.IGNORECASE)
-        return (title.encode('utf-8')[:180].decode('utf-8', 'ignore') or 'document') + '.pdf'
-    except (OSError, ValueError, TypeError, AttributeError):
-        return 'document.pdf'
-
-children = []
-while True:
-    children = [child for child in children if child.poll() is None]
-    try:
-        for folder in sorted(base.glob(str(uid) + '-job-*')):
-            try:
-                info = folder.lstat()
-                if not stat.S_ISDIR(info.st_mode) or info.st_uid != uid or info.st_mode & 0o077:
-                    continue
-                source = folder / 'document.pdf'
-                if not source.exists():
-                    continue
-                fd = os.open(source, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
-                with os.fdopen(fd, 'rb') as stream:
-                    info = os.fstat(stream.fileno())
-                    if not stat.S_ISREG(info.st_mode) or info.st_uid != uid or info.st_size > 512 * 1024 * 1024:
-                        continue
-                    work = tempfile.mkdtemp(prefix='lps-print-', dir=runtime)
-                    target = pathlib.Path(work) / document_name(folder)
-                    with target.open('xb') as out:
-                        os.fchmod(out.fileno(), 0o600)
-                        shutil.copyfileobj(stream, out)
-                    try:
-                        child = subprocess.Popen(['/usr/bin/linux-print-studio', str(target)])
-                        children.append(child)
-                    except OSError:
-                        shutil.rmtree(work)
-                        raise
-                    # The GUI owns the runtime copy after launch.
-                    source.unlink()
-                    (folder / 'title.json').unlink(missing_ok=True)
-            except (OSError, subprocess.SubprocessError) as error:
                 print(error, flush=True)
     except OSError as error:
         print(error, flush=True)

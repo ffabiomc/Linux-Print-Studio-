@@ -36,3 +36,6 @@ add_executable(core_tests tests/core_tests.cpp)
 target_link_libraries(core_tests PRIVATE print_core)
 add_test(NAME core_tests COMMAND core_tests)
 install(TARGETS linux-print-studio RUNTIME DESTINATION bin)
+
+install(FILES data/io.github.ffabiomc.LinuxPrintStudio.desktop DESTINATION "${CMAKE_INSTALL_DATADIR}/applications")
+install(FILES data/io.github.ffabiomc.LinuxPrintStudio.svg DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps")

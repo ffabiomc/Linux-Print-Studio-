@@ -9,6 +9,10 @@ case "${1:-}" in
     test -n "$user" || { echo "Use sudo from your desktop user" >&2; exit 1; }
     uid=$(id -u "$user")
     test "$uid" -ge 1000
+    install -d -m 0755 /var/spool/cups-pdf/lps-delivery
+    if command -v restorecon >/dev/null 2>&1; then
+      restorecon -R /var/spool/cups-pdf/lps-delivery
+    fi
     lpadmin -p "$queue" -D "Linux Print Studio" -v "lps:/local/$uid" -m raw -o printer-is-shared=false -u "allow:$user" -E
     ;;
   remove)

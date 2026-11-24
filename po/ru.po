@@ -402,3 +402,12 @@ msgstr "Удалить сохранённые настройки печати? �
 
 msgid "Printing defaults reset; reopen the application."
 msgstr "Настройки печати сброшены; перезапустите приложение."
+
+msgid "Language"
+msgstr "Язык"
+
+msgid "System language"
+msgstr "Язык системы"
+
+msgid "Language changed; reopen the application."
+msgstr "Язык изменён; перезапустите приложение."

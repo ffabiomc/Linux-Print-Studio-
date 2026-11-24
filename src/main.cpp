@@ -879,13 +879,29 @@ static int general_theme() {
     g_key_file_load_from_file(file.get(),general_path().c_str(),G_KEY_FILE_NONE,nullptr);
     return std::clamp(g_key_file_get_integer(file.get(),"general","theme",nullptr),0,2);
 }
+static const char* language_codes[]={"","en","pt_BR","pt_PT","es","fr","de","it","ru","zh_CN","ja","ko","ar","fi","sv"};
+static guint general_language() {
+    std::unique_ptr<GKeyFile,decltype(&g_key_file_free)> file(g_key_file_new(),g_key_file_free);
+    g_key_file_load_from_file(file.get(),general_path().c_str(),G_KEY_FILE_NONE,nullptr);
+    OwnedString code(g_key_file_get_string(file.get(),"general","language",nullptr));
+    for(guint i=1;i<15;i++) if(g_strcmp0(code.get(),language_codes[i])==0) return i;
+    return 0;
+}
 static void general_clicked(GtkButton*,gpointer data) {
     auto* s=static_cast<State*>(data);
     auto* d=ADW_MESSAGE_DIALOG(adw_message_dialog_new(GTK_WINDOW(s->window),tr("General settings"),tr("Choose the application appearance.")));
     const char* themes[]={tr("System theme"),tr("Light theme"),tr("Dark theme"),nullptr};
     auto* theme=gtk_drop_down_new_from_strings(themes);
     gtk_drop_down_set_selected(GTK_DROP_DOWN(theme),general_theme());
-    adw_message_dialog_set_extra_child(d,theme);
+    const char* languages[]={tr("System language"),"English","Português (Brasil)","Português (Portugal)","Español","Français","Deutsch","Italiano","Русский","简体中文","日本語","한국어","العربية","Suomi","Svenska",nullptr};
+    auto* language=gtk_drop_down_new_from_strings(languages);
+    gtk_drop_down_set_selected(GTK_DROP_DOWN(language),general_language());
+    auto* settings=gtk_box_new(GTK_ORIENTATION_VERTICAL,8);
+    gtk_box_append(GTK_BOX(settings),theme);
+    gtk_box_append(GTK_BOX(settings),gtk_label_new(tr("Language")));
+    gtk_box_append(GTK_BOX(settings),language);
+    adw_message_dialog_set_extra_child(d,settings);
+    g_object_set_data(G_OBJECT(d),"language",language);
     g_object_set_data(G_OBJECT(d),"theme",theme);
     adw_message_dialog_add_response(d,"close",tr("Close"));
     adw_message_dialog_add_response(d,"save",tr("Save preferences"));
@@ -898,10 +914,19 @@ static void general_clicked(GtkButton*,gpointer data) {
             auto* widget=GTK_DROP_DOWN(g_object_get_data(G_OBJECT(dialog),"theme"));
             int value=static_cast<int>(gtk_drop_down_get_selected(widget));
             std::unique_ptr<GKeyFile,decltype(&g_key_file_free)> file(g_key_file_new(),g_key_file_free);
+            auto* lang=GTK_DROP_DOWN(g_object_get_data(G_OBJECT(dialog),"language"));
+            guint selected=gtk_drop_down_get_selected(lang);
+            if(selected>=15) selected=0;
+            bool changed=selected!=general_language();
+            g_key_file_load_from_file(file.get(),general_path().c_str(),G_KEY_FILE_NONE,nullptr);
+            g_key_file_set_string(file.get(),"general","language",language_codes[selected]);
             g_key_file_set_integer(file.get(),"general","theme",value);
             const auto path=general_path();
             if(g_mkdir_with_parents(std::filesystem::path(path).parent_path().c_str(),0700)==0 &&
-               g_key_file_save_to_file(file.get(),path.c_str(),nullptr)) apply_theme(value);
+               g_key_file_save_to_file(file.get(),path.c_str(),nullptr)) {
+                apply_theme(value);
+                if(changed) status(state,tr("Language changed; reopen the application."));
+            }
             else status(state,tr("Could not save preferences"));
         } else if(g_strcmp0(response,"reset")==0) {
             auto* confirm=ADW_MESSAGE_DIALOG(adw_message_dialog_new(GTK_WINDOW(state->window),tr("Reset printing defaults"),tr("Remove saved printing defaults? Named profiles and calibration will be kept. Reopen the application to use factory defaults.")));
@@ -921,6 +946,7 @@ static void general_clicked(GtkButton*,gpointer data) {
     gtk_window_present(GTK_WINDOW(d));
 }
 static void activate(GApplication* application,gpointer) {
+    if(general_language()!=0) gtk_widget_set_default_direction(general_language()==12?GTK_TEXT_DIR_RTL:GTK_TEXT_DIR_LTR);
     apply_theme(general_theme());
     auto state=std::make_unique<State>();
     auto* s=state.get();
@@ -1184,7 +1210,11 @@ static void activate(GApplication* application,gpointer) {
     }
 }
 int main(int argc,char** argv) {
+    const guint language=general_language();
+    if(language!=0) g_setenv("LANGUAGE",language_codes[language],TRUE);
     setlocale(LC_ALL,"");
+    if(language!=0 && (g_strcmp0(setlocale(LC_MESSAGES,nullptr),"C")==0 || g_strcmp0(setlocale(LC_MESSAGES,nullptr),"POSIX")==0))
+        setlocale(LC_MESSAGES,"C.UTF-8");
     bindtextdomain("linux-print-studio",LPS_LOCALE_DIR);
     bind_textdomain_codeset("linux-print-studio","UTF-8");
     ObjectPtr<AdwApplication> app(adw_application_new("io.github.ffabiomc.LinuxPrintStudio",G_APPLICATION_HANDLES_OPEN));

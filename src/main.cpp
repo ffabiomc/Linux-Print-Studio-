@@ -698,6 +698,7 @@ static void reverse_backs_changed(GtkCheckButton*,gpointer data) {
 }
 static GtkWidget* label(const char* text){auto* w=gtk_label_new(tr(text));gtk_widget_set_halign(w,GTK_ALIGN_START);return w;}
 static void activate(GApplication* application,gpointer) {
+    adw_style_manager_set_color_scheme(adw_style_manager_get_default(),ADW_COLOR_SCHEME_DEFAULT);
     auto state=std::make_unique<State>();
     auto* s=state.get();
     s->window=adw_application_window_new(GTK_APPLICATION(application));
@@ -917,7 +918,6 @@ int main(int argc,char** argv) {
     bind_textdomain_codeset("linux-print-studio","UTF-8");
     ObjectPtr<AdwApplication> app(adw_application_new("io.github.ffabiomc.LinuxPrintStudio",G_APPLICATION_DEFAULT_FLAGS));
     g_signal_connect(app.get(),"activate",G_CALLBACK(activate),nullptr);
-    adw_style_manager_set_color_scheme(adw_style_manager_get_default(),ADW_COLOR_SCHEME_DEFAULT);
     int result=g_application_run(G_APPLICATION(app.get()),argc,argv);
     return result;
 }

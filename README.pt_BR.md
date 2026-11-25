@@ -1,5 +1,7 @@
 # Linux Print Studio
 
+[Site oficial](https://ffabiomc.github.io/Linux-Print-Studio-/pt.html)
+
 Aplicativo nativo Linux para impressão e diagramação de documentos PDF, desenvolvido em C++20, GTK4 e libadwaita.
 
 [English](README.md) · [Downloads](https://github.com/ffabiomc/Linux-Print-Studio-/releases) · [Compilações](https://github.com/ffabiomc/Linux-Print-Studio-/actions) · [Relatar problemas](https://github.com/ffabiomc/Linux-Print-Studio-/issues)

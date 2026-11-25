@@ -109,3 +109,7 @@ A compatibilidade com todos os modelos de impressora, distribuições e ambiente
 ## Contribuições
 
 Ao relatar um problema, informe distribuição, ambiente gráfico, versão/build, modelo da impressora, passos para reprodução e logs relevantes. Remova dados pessoais e nomes de documentos privados. Envie pull requests focados, acompanhados de testes quando aplicável.
+
+## Licença
+
+O código próprio do projeto é licenciado sob a [GNU GPL versão 2 exclusivamente (GPL-2.0-only)](LICENSE). Dependências e componentes de terceiros mantêm suas respectivas licenças.

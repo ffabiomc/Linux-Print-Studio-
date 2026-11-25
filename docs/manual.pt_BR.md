@@ -58,3 +58,14 @@ Ao relatar problemas, informe distribuição, ambiente gráfico, versão do paco
 ## 9. Limitações
 
 O seletor de idiomas, RTL árabe e a compatibilidade de todos os pacotes e impressoras ainda precisam de validação. Este manual descreve o código implementado; não certifica o funcionamento em todos os ambientes. Capturas reais da interface serão acrescentadas após obtenção e revisão.
+
+## 10. Exemplos práticos
+
+- Economizar papel: escolha 2 ou 4 páginas por folha, confira a legibilidade e exporte um PDF de teste.
+- Livreto: selecione o layout Livreto, confira a ordem das páginas e teste a dobra em poucas folhas antes da tiragem.
+- Intervalos: use 1-5, 8, 12-15 para selecionar apenas as páginas desejadas.
+- Duplex: confira a borda de encadernação e faça uma prova física antes de imprimir várias cópias.
+
+## 11. Documentação complementar
+
+[Instalação](../INSTALL.md) · [Impressora virtual](virtual-printer.md) · [FAQ](faq.md) · [Compatibilidade](compatibility.md) · [Manual em inglês](manual.en.md)

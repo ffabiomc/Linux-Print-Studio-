@@ -94,7 +94,7 @@ jobs:
           Version: 1.0.2
           Release: ${{ github.run_number }}%{?dist}
           Summary: Linux Print Studio GTK edition
-          License: MIT
+          License: GPL-2.0-only
           BuildArch: x86_64
           AutoReqProv: yes
           Requires: cups, python3, systemd, polkit
@@ -199,7 +199,7 @@ jobs:
           Version: 1.0.2
           Release: ${{ github.run_number }}.opensuse
           Summary: Linux Print Studio GTK edition
-          License: MIT
+          License: GPL-2.0-only
           BuildArch: x86_64
           Requires: cups, python3, systemd, polkit
           %description
@@ -254,7 +254,7 @@ jobs:
           pkgdesc='Native GTK4 PDF printing studio'
           arch=('x86_64')
           url='https://github.com/ffabiomc/Linux-Print-Studio-'
-          license=('MIT')
+          license=('GPL-2.0-only')
           depends=('gtk4' 'libadwaita' 'poppler-glib' 'cairo' 'cups' 'python' 'systemd' 'polkit')
           makedepends=('cmake' 'ninja' 'gettext' 'desktop-file-utils')
           build() {
@@ -359,7 +359,7 @@ jobs:
           pkgdesc='Native GTK4 PDF printing studio'
           arch=('x86_64')
           url='https://github.com/ffabiomc/Linux-Print-Studio-'
-          license=('MIT')
+          license=('GPL-2.0-only')
           depends=('gtk4' 'libadwaita' 'poppler-glib' 'cairo' 'cups' 'python' 'systemd' 'polkit')
           makedepends=('cmake' 'ninja' 'gettext' 'desktop-file-utils')
           build() {

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-only
 #include "core.hpp"
 #include <poppler.h>
 #include <cairo-pdf.h>

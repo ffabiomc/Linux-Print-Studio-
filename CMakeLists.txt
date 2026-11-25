@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0-only
 cmake_minimum_required(VERSION 3.20)
 project(LinuxPrintStudio VERSION 1.0.2 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)

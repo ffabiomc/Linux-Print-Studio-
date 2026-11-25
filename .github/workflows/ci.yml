@@ -115,7 +115,10 @@ jobs:
           install -m 0755 %{_topdir}/../../staging/usr/bin/lps-receive %{buildroot}/usr/bin/lps-receive
           mkdir -p %{buildroot}/usr/lib/systemd/user
           install -m 0644 %{_topdir}/../../staging/usr/lib/systemd/user/lps-receive.service %{buildroot}/usr/lib/systemd/user/
+          mkdir -p %{buildroot}/usr/share/doc/linux-print-studio-cpp
+          install -m 0644 %{_topdir}/../../staging/usr/share/doc/linux-print-studio-cpp/LICENSE %{buildroot}/usr/share/doc/linux-print-studio-cpp/LICENSE
           %files -f linux-print-studio.lang
+          %license /usr/share/doc/linux-print-studio-cpp/LICENSE
           /usr/bin/lps-receive
           /usr/lib/systemd/user/lps-receive.service
           %attr(0700,root,root) /usr/lib/cups/backend/lps
@@ -208,6 +211,7 @@ jobs:
           mkdir -p %{buildroot}
           cp -a %{staging}/. %{buildroot}/
           %files
+          %license /usr/share/doc/linux-print-studio-cpp/LICENSE
           /usr/bin/linux-print-studio
           /usr/bin/lps-virtual-printer
           /usr/bin/lps-receive

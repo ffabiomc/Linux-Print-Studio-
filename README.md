@@ -105,3 +105,7 @@ Run CTest after changes. For translations, validate with `msgfmt --check -o /dev
 ## Contributing
 
 Open an issue with distribution, desktop environment, package/build version, printer model, reproduction steps and relevant logs. Remove private document names and personal data from logs. Submit focused pull requests with tests where appropriate.
+
+## License
+
+Project-owned code is licensed under the [GNU GPL version 2 only (GPL-2.0-only)](LICENSE). Third-party components and dependencies retain their respective licenses.

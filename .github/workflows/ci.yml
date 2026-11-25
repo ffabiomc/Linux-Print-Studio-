@@ -400,3 +400,52 @@ jobs:
           path: |
             *.pkg.tar.zst
             SHA256SUMS-manjaro
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [build, fedora-rpm, memory-safety, opensuse-rpm, arch-linux, debian-native, manjaro-linux]
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Verify and stage packages
+        shell: bash
+        env:
+          BUILD: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          mkdir release
+          for target in deb fedora-rpm opensuse-rpm debian13 arch manjaro; do
+            dir="artifacts/linux-print-studio-cpp-${target}-build-${BUILD}"
+            test -d "$dir"
+            (cd "$dir"; sha256sum -c SHA256SUMS-*)
+            case "$target" in
+              deb|debian13) ext=deb ;;
+              *rpm) ext=rpm ;;
+              *) ext=pkg.tar.zst ;;
+            esac
+            files=("$dir"/*."$ext")
+            test -f "${files[0]}"
+            for file in "${files[@]}"; do
+              cp "$file" "release/${target}-$(basename "$file")"
+            done
+          done
+          (cd release; sha256sum * > SHA256SUMS)
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          BUILD: ${{ github.run_number }}
+          SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="v1.0.2-build${BUILD}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release already exists; refusing to overwrite."
+            exit 1
+          fi
+          gh release create "$tag" release/* --target "$SHA" --title "Linux Print Studio 1.0.2 (build $BUILD)" --notes "Native x86_64 packages built and tested in CI for Ubuntu 24.04, Debian 13, Fedora 42, openSUSE Tumbleweed, Arch Linux and Manjaro. Linux Mint compatibility has not been independently tested. Physical printer and virtual CUPS delivery compatibility remain subject to manual validation. Verify downloads with SHA256SUMS." --latest

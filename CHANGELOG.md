@@ -27,3 +27,8 @@ The following summarizes the GTK edition development baseline, not a verified re
 - Core tests for page selection, imposition and rendering option validation.
 
 Physical printer and distribution compatibility remain subject to testing.
+
+## Build 175
+
+- Adopt GPL-2.0-only and include the license in native package installation.
+- Publish six distribution-specific x86_64 packages and SHA256SUMS.

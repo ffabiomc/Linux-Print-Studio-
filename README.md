@@ -109,3 +109,11 @@ Open an issue with distribution, desktop environment, package/build version, pri
 ## License
 
 Project-owned code is licensed under the [GNU GPL version 2 only (GPL-2.0-only)](LICENSE). Third-party components and dependencies retain their respective licenses.
+
+## Documentation
+
+- [Installation](INSTALL.md)
+- [Manual PT-BR](docs/manual.pt_BR.md) · [Manual EN](docs/manual.en.md)
+- [Virtual printer](docs/virtual-printer.md) · [FAQ](docs/faq.md)
+- [Compatibility](docs/compatibility.md) · [Architecture](docs/architecture.md)
+- [Translations](docs/translations.md) · [Contributing](CONTRIBUTING.md)

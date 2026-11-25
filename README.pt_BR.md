@@ -113,3 +113,11 @@ Ao relatar um problema, informe distribuição, ambiente gráfico, versão/build
 ## Licença
 
 O código próprio do projeto é licenciado sob a [GNU GPL versão 2 exclusivamente (GPL-2.0-only)](LICENSE). Dependências e componentes de terceiros mantêm suas respectivas licenças.
+
+## Documentação
+
+- [Instalação](INSTALL.md)
+- [Manual PT-BR](docs/manual.pt_BR.md) · [Manual EN](docs/manual.en.md)
+- [Virtual printer](docs/virtual-printer.md) · [FAQ](docs/faq.md)
+- [Compatibility](docs/compatibility.md) · [Architecture](docs/architecture.md)
+- [Translations](docs/translations.md) · [Contributing](CONTRIBUTING.md)

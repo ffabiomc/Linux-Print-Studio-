@@ -46,3 +46,5 @@ install(FILES scripts/lps DESTINATION "${LPS_CUPS_BACKEND_DIR}" PERMISSIONS OWNE
 
 install(PROGRAMS scripts/lps-receive DESTINATION bin)
 install(FILES data/lps-receive.service DESTINATION lib/systemd/user)
+
+install(FILES LICENSE DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/linux-print-studio-cpp")

@@ -11,3 +11,7 @@ Status: preliminary, not legal clearance. CMake directly links GTK4, libadwaita,
 | CUPS | Modern releases use Apache-2.0 with an exception; inspect exact exception and GPLv2 applicability |
 
 Apache-2.0 alone is not compatible with GPL-2.0-only. Do not assume the CUPS exception resolves every linking or redistribution scenario. Check the actual library license and exception, transitive dependencies, bundled files, translations and contributor rights. Preserve notices and provide corresponding source and build scripts as required. Do not claim a completed compliance audit until evidence is recorded.
+
+## CUPS upstream evidence
+
+OpenPrinting explicitly documents an exception for linking GPLv2-only software. Its terms include a conditional waiver of conflicting Apache provisions for combined software. See https://openprinting.github.io/cups/doc/license.html and https://github.com/OpenPrinting/cups/blob/master/NOTICE. This supports retaining GPL-2.0-only for project-owned code; exact distro versions, notices and transitive dependencies still require verification. This is not a completed legal audit.
